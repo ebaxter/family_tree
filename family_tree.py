@@ -3,6 +3,7 @@ import pdb
 import matplotlib.pyplot as pl
 import networkx as nx
 
+# eric is sexy 
 class Person:
 
     def __init__(self):
