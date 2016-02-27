@@ -3,9 +3,9 @@ import pdb
 import networkx as nx
 import json
 
-def print_tree(tree):
-    for ii in xrange(0,len(tree.family_tree)):
-        aperson = tree.family_tree[ii]
+def print_tree(family_tree):
+    for ii in xrange(0,len(family_tree)):
+        aperson = family_tree[ii]
         if hasattr(aperson, 'first_name'):
             print "Person: ", aperson.first_name
 
