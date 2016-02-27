@@ -1,0 +1,38 @@
+[
+  {
+    "first_name": "Joe", 
+    "id": "joe", 
+    "generation_number": 2.0
+  }, 
+  {
+    "first_name": "Laura", 
+    "id": "laura", 
+    "generation_number": 2.0
+  }, 
+  {
+    "first_name": "Jimmy", 
+    "generation_number": 1.0, 
+    "father": "joe", 
+    "id": "jim", 
+    "mother": "laura"
+  }, 
+  {
+    "first_name": "john", 
+    "generation_number": 1.0, 
+    "father": "joe", 
+    "id": "john", 
+    "mother": "laura"
+  }, 
+  {
+    "first_name": "Josephina", 
+    "id": "josephina", 
+    "generation_number": 1.0
+  }, 
+  {
+    "first_name": "Jose", 
+    "generation_number": 0.0, 
+    "father": "john", 
+    "id": "jose", 
+    "mother": "josephina"
+  }
+]

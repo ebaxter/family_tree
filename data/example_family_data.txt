@@ -1,0 +1,29 @@
+id = 'joe'
+first_name = 'Joe'
+last_name = 'Shmoe'
+
+id = 'laura'
+first_name = 'Laura'
+last_name = 'Shmoe'
+
+id = 'jim'
+first_name = 'Jimmy'
+last_name = 'John'
+father = 'joe'
+mother = 'laura'
+
+id = 'john'
+first_name = 'john'
+last_name = 'johnson'
+father = 'joe'
+mother = 'laura'
+
+id = 'josephina'
+first_name = 'Josephina'
+last_name = 'Beepboop'
+
+id = 'jose'
+first_name = 'Jose'
+last_name = 'Esoj'
+father = 'john'
+mother = 'josephina'
