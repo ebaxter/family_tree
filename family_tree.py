@@ -1,40 +1,30 @@
 import numpy as np
 import pdb
-import matplotlib.pyplot as pl
 import networkx as nx
+import json
 
-class Person:
-
-    def __init__(self):
-        print "Person created"
-
-def connect_tree(family_tree):
-    for ii in xrange(0,len(family_tree)):
-        aperson = family_tree[ii]
-#        if (hasattr(aperson,'father')):
-#            aperson.father.children = 2
-    
-def print_tree(family_tree):
-    for ii in xrange(0,len(family_tree)):
-        aperson = family_tree[ii]
+def print_tree(tree):
+    for ii in xrange(0,len(tree.family_tree)):
+        aperson = tree.family_tree[ii]
         if hasattr(aperson, 'first_name'):
             print "Person: ", aperson.first_name
 
-def get_node_name(person):
-    if (0):
-        output = ''
-        if (hasattr(person,'first_name')):
-            output += person.first_name
-        if (hasattr(person,'last_name')):
-            output += person.last_name
-        return output
-    if (1):
-        if (not hasattr(person,'id')):
-            print "id not found!"
-            pdb.set_trace()
-            print "name = ", person.first_name
-        return person.id
+class Person:
+    def __init__(self):
+        #print "Person created"
+        self.id = -1
 
+    def get_dict(self):
+        dict_data = {'id':self.id}
+        if (hasattr(self,'first_name')):
+            dict_data['first_name'] = self.first_name
+        if (hasattr(self,'father')):
+            dict_data['father'] = self.father.id
+        if (hasattr(self,'mother')):
+            dict_data['mother'] = self.mother.id
+        if (hasattr(self,'generation_number')):
+            dict_data['generation_number'] = self.generation_number
+        return dict_data
 
 class family_tree:
     def __init__(self):
@@ -80,30 +70,94 @@ class family_tree:
         G = nx.Graph()
         # add people
         for ni in xrange(0,len(self.family_tree)):
-            G.add_node(get_node_name(self.family_tree[ni]))
-#            print "ni = ", ni
-#            print "name = ", get_node_name(self.family_tree[ni])
+            G.add_node(self.family_tree[ni].id)
         # Add father/mother relationships
         for ni in xrange(0,len(self.family_tree)):
-#            print "bi = ", ni
-#            print "name = ", self.family_tree[ni].first_name
             if (hasattr(self.family_tree[ni],'father')):
-                G.add_edge(get_node_name(self.family_tree[ni]),get_node_name(self.family_tree[ni].father))
+                G.add_edge(self.family_tree[ni].id,self.family_tree[ni].father.id)
             if (hasattr(self.family_tree[ni],'mother')):
-                G.add_edge(get_node_name(self.family_tree[ni]),get_node_name(self.family_tree[ni].mother))
+                G.add_edge(self.family_tree[ni].id,self.family_tree[ni].mother.id)
         nx.draw(G)
-        pdb.set_trace()
 
+    def assign_generation_numbers(self):
+        id_list = [self.family_tree[pi].id for pi in xrange(0,len(self.family_tree))]
+        father_id_list = []
+        mother_id_list = []
+        for pi in xrange(0,len(self.family_tree)):
+            if (hasattr(self.family_tree[pi],'father')):
+                father_id_list.append(self.family_tree[pi].father.id)
+            else:
+                father_id_list.append('none')
+            if (hasattr(self.family_tree[pi],'mother')):
+                mother_id_list.append(self.family_tree[pi].mother.id)
+            else:
+                mother_id_list.append('none')
+        #convert to numpy arrays for using 'where' function
+        father_id_list = np.array(father_id_list)
+        mother_id_list = np.array(mother_id_list)
+        id_list = np.array(id_list)
+        
+        badval = 1.0e10
+        generation_number_list = np.zeros(len(id_list))+badval
+        relations_already_assigned = [False for i in xrange(0,len(id_list))]
+        previous_person_index = -1
+        person_index = 0
+        generation_number_list[0] = 0
+        #as long as we still have relations to assign...
+        while ((len(np.bitwise_not(relations_already_assigned)) > 0) and (person_index != previous_person_index)):
+            #print "pervious_person_index = ", previous_person_index
+            #print "person index = ", person_index
+            children = np.where((father_id_list == id_list[person_index]) | (mother_id_list == id_list[person_index]))[0]
+            if (len(children) > 0):
+                generation_number_list[children] = generation_number_list[person_index]-1
+            if (father_id_list[person_index] != 'none'):
+                father_index = np.where(id_list == father_id_list[person_index])[0]
+                generation_number_list[father_index] = generation_number_list[person_index]+1
+            if (mother_id_list[person_index] != 'none'):
+                mother_index = np.where(id_list == mother_id_list[person_index])[0]
+                generation_number_list[mother_index] = generation_number_list[person_index]+1
+            relations_already_assigned[person_index] = True
+            possible_next_people = np.where((np.bitwise_not(relations_already_assigned)) & (generation_number_list != 1.0e10))[0]
+            previous_person_index = person_index
+            if (len(possible_next_people) > 0):
+                person_index = possible_next_people[0]
+        #Deal with people that have no connections
+        bad = np.where(generation_number_list == badval)[0]
+        good = np.where(generation_number_list != badval)[0]
+        #make all positive
+        generation_number_list -= np.min(generation_number_list[good])
+        if (len(bad) > 0):
+            generation_number_list[bad] = -1
+        #Store generation number
+        for pi in xrange(0,len(self.family_tree)):        
+            self.family_tree[pi].generation_number = generation_number_list[pi]
+
+    def get_simple_tree_dict(self):
+        dict_list = []
+        for pi in xrange(0,len(self.family_tree)):
+            dict_list.append(self.family_tree[pi].get_dict())
+        return dict_list
+
+    def get_tree_dict(self):
+        dict = []
 
 data_file = '../data/family_data.txt'
 
 tree = family_tree()
 tree.read_tree(data_file)
-tree.draw_tree_python()
+
+tree.assign_generation_numbers()
+
+
+
+tree_dict = tree.get_simple_tree_dict()
+
+json_out_name = 'my_json.json'
+with open('./json_data/' + json_out_name, 'w') as outfile:
+    json.dump(tree_dict, outfile, indent = 2)
 
 pdb.set_trace()
 
-connect_tree(family_tree)
 print_tree(family_tree)
 draw_tree_python(family_tree)
 
