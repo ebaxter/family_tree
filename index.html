@@ -30,20 +30,33 @@ function draw_person(svgSelection, xx, yy, person){
      .attr("y",yy)
      .attr("text-anchor","middle")
      .text(person.id);
-
   var bbox = txt.node().getBBox();
-
   var rect = svgSelection.append("rect")
     .attr("x", bbox.x-bbox.width*0.25)
     .attr("y", bbox.y-bbox.height*0.25)
     .attr("width", bbox.width*1.5)
     .attr("height", bbox.height*1.5)
+    .attr("id", person.id)
     .style("fill", "orange")
     .style("fill-opacity", "0.3")
     .style("stroke", "#666")
     .style("stroke-width", "1.0px");  
 }
 
+function connect_two_people(svgSelection, person1, person2){
+   x1 = d3.select("#" + person1.id).attr("x");
+   y1 = d3.select("#" + person1.id).attr("y");
+   x2 = d3.select("#" + person2.id).attr("x");
+   y2 = d3.select("#" + person2.id).attr("y");
+
+   var connector = svgSelection.append("line")
+                               .attr("x1",x1)
+                               .attr("y1",y1)
+                               .attr("x2",x2)
+                               .attr("y2",y2)
+                               .attr("stroke-width", 2)
+                               .attr("stroke", "black");
+}
 
 function draw_tree(tree){
 //   alert(tree.length);
@@ -51,6 +64,7 @@ function draw_tree(tree){
    var svgSelection = bodySelection.append("svg")
                                    .attr("width", 2000)
                                    .attr("height", 1000);
+
    //Draw people boxes
    for (i = 0; i < tree.length; i++){
      gennum = tree[i].generation_number;
@@ -63,14 +77,9 @@ function draw_tree(tree){
      }
      draw_person(svgSelection, xx+80*(i % 10), yy, tree[i]);
    }
-   //Connect people (where should this go?)
-   var connector = svgSelection.append("line")
-                               .attr("x1",5)
-                               .attr("y1",5)
-                               .attr("x1",50)
-                               .attr("y1",50)
-                               .attr("stroke-width", 2)
-                               .attr("stroke", "black");
+
+   //Connect people
+   connect_two_people(svgSelection, tree[0],tree[1]);  
 }
 
 
