@@ -20,8 +20,12 @@ class Person:
             dict_data['first_name'] = self.first_name
         if (hasattr(self,'father')):
             dict_data['father'] = self.father.id
+        else:
+            dict_data['father'] = 'none'
         if (hasattr(self,'mother')):
             dict_data['mother'] = self.mother.id
+        else:
+            dict_data['mother'] = 'none'
         if (hasattr(self,'generation_number')):
             dict_data['generation_number'] = self.generation_number
         return dict_data
@@ -141,18 +145,16 @@ class family_tree:
     def get_tree_dict(self):
         dict = []
 
-data_file = '../data/family_data.txt'
+data_file = './data/example_family_data.txt'
 
 tree = family_tree()
 tree.read_tree(data_file)
-
 tree.assign_generation_numbers()
-
 
 
 tree_dict = tree.get_simple_tree_dict()
 
-json_out_name = 'my_json.json'
+json_out_name = 'example_json.json'
 with open('./json_data/' + json_out_name, 'w') as outfile:
     json.dump(tree_dict, outfile, indent = 2)
 
