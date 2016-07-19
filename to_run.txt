@@ -1,0 +1,8 @@
+simple server:
+
+python -m SimpleHTTPServer		
+
+
+browser:
+
+http://localhost:8000/index.html
