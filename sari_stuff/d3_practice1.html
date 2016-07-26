@@ -1,0 +1,64 @@
+<!--simple server:
+python -m SimpleHTTPServer    
+browser:
+http://localhost:8000/index.html
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+  	<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+    <title>Family Tree</title>
+  </head>
+  <body>
+...
+
+  <!-- load the d3.js library --> 
+<script src="http://d3js.org/d3.v3.min.js"></script>
+   
+<!--JAVASCRIPT - where the d3 is -->
+<script type='text/javascript'>
+
+var svg = d3.select("body").append("svg")
+//alert("hello")
+var numbers = [ 5, 4, 10, 1 ]
+var data = [
+      { date: '2014-01-01', amount: 10 },
+      { date: '2014-02-01', amount: 20 },
+      { date: '2014-03-01', amount: 40 },
+      { date: '2014-04-01', amount: 80 }
+    ];
+//alert(numbers)
+  var y = d3.scale.linear()
+  .domain([0, 5]) // $0 to $80
+  .range([10, 0]); // Seems backwards because SVG is y-down
+    
+  var x = d3.time.scale()
+    .domain([
+      new Date(Date.parse('2014-01-01')),
+      new Date(Date.parse('2014-04-01'))
+    ])
+    .range([0, 300]);
+  
+  var xAxis = d3.svg.axis()
+  .scale(x)         // x is the d3.time.scale()
+  .orient('bottom') // the ticks go below the graph
+  .ticks(4);        // specify the number of ticks
+
+var svg = d3.select('body')
+  .append('svg')        // create an <svg> element
+    .attr('width', 400) // set its dimentions
+    .attr('height', 150);
+
+svg.append('g')            // create a <g> element
+  .attr('class', 'x axis') // specify classes
+  .call(xAxis);            // let the axis do its thing
+
+
+
+</script>
+  </body>
+</html>
+
+
+
+

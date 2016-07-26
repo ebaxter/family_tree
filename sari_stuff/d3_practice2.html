@@ -1,0 +1,50 @@
+<!--simple server:
+python -m SimpleHTTPServer    
+browser:
+http://localhost:8000/index.html
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+  	<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+    <title>Family Tree</title>
+  </head>
+  <body>
+   This is a family tree.
+
+  <!-- load the d3.js library --> 
+<script src="http://d3js.org/d3.v3.min.js"></script>
+   
+<!--JAVASCRIPT - where the d3 is -->
+<script type='text/javascript'>
+
+//var svg = d3.select("body").append("svg")
+
+var rectData = [10, 20, 30 ]
+
+var svgContainer = d3.select("body").append("svg")
+  .attr("width", 200)
+  .attr("height", 200)
+
+var rectangles = svgContainer.selectAll("rect")
+  .data(rectData)
+  .enter()
+  .append("rect");
+
+var rectangleAttributes = rectangles
+  .attr("x", function (d) { return d; })
+  .attr("y", function (d) { return d; })
+  .attr("width", 5)
+  .attr("height", 5)
+  .style("fill", "green")
+});
+
+</script>
+<!--END JAVASCRIPT-->
+
+  </body>
+</html>
+
+
+
+
