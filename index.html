@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,21 +8,74 @@
     body {
     font: 10px sans-serif;
     }
-
   </style>
+
+
+  <button id="addBtn">Add Person</button>
+  <button id="loadBtn">Load Tree</button>
 
   <title>Family Tree</title>
   
 
 <script type='text/javascript'>//<![CDATA[
-window.onload=function(){
+document.getElementById("addBtn").onclick = add_person;
+document.getElementById("loadBtn").onclick = load_tree;
 
-d3.json("./json_data/example_json.json", function(error, treeData) {
+function add_person(){
+ alert("Adding person!");
+}
+
+function load_tree(){
+  d3.json("./json_data/example_json.json", function(error, treeData) {
    if (error) throw error;
-
    draw_tree(treeData);
-});
+  });
+}
 
+function draw_tree(tree){
+//   alert(tree.length);
+   var bodySelection = d3.select("body");
+   var svgSelection = bodySelection.append("svg")
+                                   .attr("width", 2000)
+                                   .attr("height", 1000);
+  ydelta = 80;
+   //Draw people boxes
+   maxgennum = 0;
+   for (i = 0; i < tree.length; i++){
+     gennum = tree[i].generation_number;
+     if (gennum > maxgennum){
+       maxgennum = gennum;
+     }
+   }
+   for (i = 0; i < tree.length; i++){
+     gennum = tree[i].generation_number;
+     xx = 100;
+     if (gennum >= 0){
+       yy = 100+maxgennum*ydelta-ydelta*gennum;
+     }
+     if (gennum < 0){
+       yy = 100+(maxgennum+2)*ydelta;
+     }
+     draw_person(svgSelection, xx+80*(i % 10), yy, tree[i]);
+   }
+   //Connect parents
+   //loop through all pairs
+   for (i = 0; i < tree.length-1; i++){
+       for (j = i+1; j < tree.length; j++){
+          //test to see if these two people are parents
+          for (k = 0; k < tree.length; k++){
+             if ((tree[k].father == tree[i].id && tree[k].mother == tree[j].id) || (tree[k].father == tree[j].id && tree[k].mother == tree[i].id)){
+                 connect_parents(svgSelection, tree[i], tree[j]);  
+                 break;
+             }
+          }
+       }
+    }
+   //Connect children to their parents
+   for (i = 0; i < tree.length; i++){
+      connect_child_to_parent(svgSelection,tree[i]);
+   }
+}
 
 function draw_person(svgSelection, xx, yy, person){
   var txt = svgSelection.append("text")
@@ -42,12 +96,18 @@ function draw_person(svgSelection, xx, yy, person){
     .style("stroke-width", "1.0px");  
 }
 
+//window.onload=function(){
+//d3.json("./json_data/example_json.json", function(error, treeData) {
+//   if (error) throw error;
+//   draw_tree(treeData);
+//});}
+
+
 function connect_parents(svgSelection, person1, person2){
    x1 = d3.select("#" + person1.id).attr("x");
    y1 = d3.select("#" + person1.id).attr("y");
    x2 = d3.select("#" + person2.id).attr("x");
    y2 = d3.select("#" + person2.id).attr("y");
-
    var connector = svgSelection.append("line")
                                .attr("id",person1.id + "_" + person2.id)
                                .attr("x1",x1)
@@ -101,61 +161,7 @@ function connect_child_to_parent(svgSelection,child){
    }
 }
 
-function draw_tree(tree){
-//   alert(tree.length);
-   var bodySelection = d3.select("body");
-   var svgSelection = bodySelection.append("svg")
-                                   .attr("width", 2000)
-                                   .attr("height", 1000);
-
-  ydelta = 80;
-
-   //Draw people boxes
-   maxgennum = 0;
-   for (i = 0; i < tree.length; i++){
-     gennum = tree[i].generation_number;
-     if (gennum > maxgennum){
-       maxgennum = gennum;
-     }
-   }
-   for (i = 0; i < tree.length; i++){
-     gennum = tree[i].generation_number;
-     xx = 100;
-     if (gennum >= 0){
-       yy = 100+maxgennum*ydelta-ydelta*gennum;
-     }
-     if (gennum < 0){
-       yy = 100+(maxgennum+2)*ydelta;
-     }
-     draw_person(svgSelection, xx+80*(i % 10), yy, tree[i]);
-   }
-
-   //Connect parents
-   //loop through all pairs
-   for (i = 0; i < tree.length-1; i++){
-       for (j = i+1; j < tree.length; j++){
-          //test to see if these two people are parents
-          for (k = 0; k < tree.length; k++){
-             if ((tree[k].father == tree[i].id && tree[k].mother == tree[j].id) || (tree[k].father == tree[j].id && tree[k].mother == tree[i].id)){
-                 connect_parents(svgSelection, tree[i], tree[j]);  
-                 break;
-             }
-          }
-       }
-    }
-
-   //Connect children to their parents
-   for (i = 0; i < tree.length; i++){
-      connect_child_to_parent(svgSelection,tree[i]);
-   }
-}
-
-}//]]> 
-
 </Script>
-
 <body>
 </body>
-
 </html>
-

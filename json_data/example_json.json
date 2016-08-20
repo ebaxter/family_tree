@@ -1,13 +1,17 @@
 [
   {
     "first_name": "Joe", 
+    "generation_number": 2.0, 
+    "father": "none", 
     "id": "joe", 
-    "generation_number": 2.0
+    "mother": "none"
   }, 
   {
     "first_name": "Laura", 
+    "generation_number": 2.0, 
+    "father": "none", 
     "id": "laura", 
-    "generation_number": 2.0
+    "mother": "none"
   }, 
   {
     "first_name": "Jimmy", 
@@ -25,8 +29,10 @@
   }, 
   {
     "first_name": "Josephina", 
+    "generation_number": 1.0, 
+    "father": "none", 
     "id": "josephina", 
-    "generation_number": 1.0
+    "mother": "none"
   }, 
   {
     "first_name": "Jose", 
