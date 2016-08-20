@@ -1,0 +1,56 @@
+<!--simple server:
+python -m SimpleHTTPServer    
+browser:
+http://localhost:8000/index.html
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+  	<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+    <title>Family Tree</title>
+  </head>
+  <body>
+   This is a family tree.
+
+  <!-- load the d3.js library --> 
+<script src="http://d3js.org/d3.v3.min.js"></script>
+   
+<!--JAVASCRIPT - where the d3 is -->
+<script type='text/javascript'>
+
+var svg = d3.select("body").append("svg")
+
+d3.json("/data/data.json", function(error, data) {
+ createVisual(data);
+});
+
+//var xx = [{"name":"Sari"}]
+//createVisual(xx);
+
+function createVisual(data){
+  //alert(data[0].name)
+  //alert(data[0].x)
+  //alert(d3.min(data, function(d, i) { return d.x }))
+  //alert(d3.extent(data, function(d, i) { return d.x }))
+  y.domain(d3.extent(data, function(d, i) { return d.y }))
+  x.domain(d3.extent(data, function(d, i) { return d.x }))
+  
+  var xaxis = d3.svg.axis()
+    .scale(x)
+  
+  var svg = d3.select('body')
+    .append('svg')
+  
+  svg.append('g')
+    .attr('class', 'x axis')
+    .call(xaxis)
+}
+
+
+</script>
+  </body>
+</html>
+
+
+
+

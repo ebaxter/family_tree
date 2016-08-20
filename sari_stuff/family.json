@@ -1,0 +1,29 @@
+{ 
+"name": "Sari",
+"value": "100",
+"children": [
+    { 
+        "name": "Eric",
+        "value": "75",
+        "children": [
+            { "name": "Pearic" , "value": "25"},
+            { "name": "Nuzzle" , "value": "25"},
+            { "name": "Snuggle" , "value": "25"},
+            { "name": "Saric" , "value": "25"}
+        ]
+    },
+    {
+        "name": "Babe",
+        "value": "75",
+        "children": [
+            { "name": "Baber", "size": 1000 , "value": "25" },
+            { "name": "Babet", "size": 1000 , "value": "25" },
+            { "name": "Babeeeeeeeeeeee", "size": 3000 , "value": "25" }
+        ]
+    },
+    {
+        "name":"Raymond",
+        "value": "75"
+    }
+]
+}

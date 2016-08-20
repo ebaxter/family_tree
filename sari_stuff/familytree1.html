@@ -1,0 +1,107 @@
+<!doctype html 10 loading external data>
+<html>
+    
+<head>
+    <title> D3 tutorial</title>
+    <script src = "http://d3js.org/d3.v3.min.js"></script>
+</head>
+
+<body>
+    
+     <style> /* set the CSS */
+
+        body { font: 14px Calibri;}
+
+        .myrect { 
+            stroke: black;
+            stroke-width: 5;
+            shape-rendering: crispEdges;
+            opacity: .4
+        }
+         
+        .myrecttext {
+            font: 16px Calibri;     
+        }
+
+        div.tooltip {
+
+            position: absolute;    
+            text-align: center;    
+            width: 80px;    
+            height: 28px;        
+            padding: 10px;    
+            font: 16px Calibri;    
+            background: beige;    
+            border: 0px;                    
+            border-radius: 6px;
+        }
+
+    </style>   
+    
+    <script>
+    var rectangle_width = 100 
+    var rectangle_height = 50
+   
+    var data = [ 
+    {"name": "Sari", "age":25,  "x":30, "y":10 },
+    {"name": "Eric", "age":30, "x":150, "y":30 },
+    {"name": "Saric", "age":100, "x":300, "y":40 }
+    ]
+    //d3.json("mydata1.json", function(data){    
+   // d3.json("family.json", function(data){
+        
+        var div = d3.select("body")
+            .append("div")  // declare the tooltip div 
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+        
+    
+        var color = d3.scale.linear()
+            .domain([0,100])
+            .range(["red", "purple"])
+        
+        var canvas = d3.select("body").append("svg")
+                    .attr("width", 500)
+                    .attr("height", 500)
+        
+        canvas.selectAll("rect")
+            .data(data)
+            .enter()
+                .append("rect")
+                .attr("x", function(d){return d.x;})
+                .attr("y", function(d){return d.y;})
+                .attr("width", rectangle_width)
+                .attr("height", rectangle_height)
+                .attr("fill", function(d){return color(d.age);})
+                .attr("class", "myrect")
+                .on("mouseover", function(d) {
+                    div.transition().duration(10)		
+                        .style("opacity", .7);		  
+                    div .text("Age: " + d.age)
+                        .style("left", (d3.event.pageX) + "px")             
+                        .style("top", (d3.event.pageY - 28) + "px")})
+                //.on("mousemove", function(d) { div.style("opacity", .5); })
+                .on("mouseout", function(d) { 
+                    div.transition().duration(500)		
+                    .style("opacity", 0);	style("opacity", 0); })
+        
+        
+        canvas.selectAll("text")
+        .data(data)
+        .enter()
+            .append("text")
+            .attr("fill", "black")
+            .attr("x", function(d){return d.x + rectangle_width/2;})
+            .attr("y", function(d){return d.y + rectangle_height/2;})
+            .attr("text-anchor", "middle")
+            .text(function(d){return d.name;})
+            .attr("class", "myrecttext")
+            
+    //})
+  
+                    
+    </script>
+    
+</body>
+    
+</html>
