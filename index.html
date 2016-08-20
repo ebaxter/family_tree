@@ -6,8 +6,19 @@
   <script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
   <style type="text/css">
     body {
-    font: 10px sans-serif;
+    font: 14px Calibri;
     }
+
+    .personrect { 
+            stroke: black;
+            stroke-width: 5;
+            shape-rendering: crispEdges;
+            opacity: .1;
+            fill: red;
+            fill-opacity: 0.6;
+            font: 16px Calibri;     
+        }
+
   </style>
 
 
@@ -32,8 +43,18 @@ function load_tree(){
   });
 }
 
+//window.onload=function(){
+//d3.json("./json_data/example_json.json", function(error, treeData) {
+//   if (error) throw error;
+//   draw_tree(treeData);
+//});}
+
+var div = d3.select("body")
+            .append("div")  // declare the tooltip div 
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
 function draw_tree(tree){
-//   alert(tree.length);
    var bodySelection = d3.select("body");
    var svgSelection = bodySelection.append("svg")
                                    .attr("width", 2000)
@@ -78,6 +99,41 @@ function draw_tree(tree){
 }
 
 function draw_person(svgSelection, xx, yy, person){
+
+
+
+/* From Sari
+ .append("rect")
+                .attr("x", function(d){return d.x;})
+                .attr("y", function(d){return d.y;})
+                .attr("width", rectangle_width)
+                .attr("height", rectangle_height)
+                .attr("fill", function(d){return color(d.age);})
+                .attr("class", "myrect")
+                .on("mouseover", function(d) {
+                    div.transition().duration(10)		
+                        .style("opacity", .7);		  
+                    div .text("Age: " + d.age)
+                        .style("left", (d3.event.pageX) + "px")             
+                        .style("top", (d3.event.pageY - 28) + "px")})
+                //.on("mousemove", function(d) { div.style("opacity", .5); })
+                .on("mouseout", function(d) { 
+                    div.transition().duration(500)		
+                    .style("opacity", 0);	style("opacity", 0); })
+*/
+
+   svgSelection.on("mouseover", function(d) {
+                    div.transition().duration(10)		
+                        .style("opacity", .7);		  
+                    div .text("Age: " + 7)
+                        .style("left", (d3.event.pageX) + "px")             
+                        .style("top", (d3.event.pageY - 28) + "px")})
+                //.on("mousemove", function(d) { div.style("opacity", .5); })
+   
+  svgSelection.on("mouseout", function(d) { 
+                    div.transition().duration(500)		
+                    .style("opacity", 0);})
+
   var txt = svgSelection.append("text")
      .attr("x",xx)
      .attr("y",yy)
@@ -90,18 +146,8 @@ function draw_person(svgSelection, xx, yy, person){
     .attr("width", bbox.width*1.5)
     .attr("height", bbox.height*1.5)
     .attr("id", person.id)
-    .style("fill", "orange")
-    .style("fill-opacity", "0.3")
-    .style("stroke", "#666")
-    .style("stroke-width", "1.0px");  
+    .attr("class", "personrect")
 }
-
-//window.onload=function(){
-//d3.json("./json_data/example_json.json", function(error, treeData) {
-//   if (error) throw error;
-//   draw_tree(treeData);
-//});}
-
 
 function connect_parents(svgSelection, person1, person2){
    x1 = d3.select("#" + person1.id).attr("x");
