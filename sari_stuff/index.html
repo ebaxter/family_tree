@@ -17,19 +17,33 @@ http://localhost:8000/index.html
    
 <!--JAVASCRIPT - where the d3 is -->
 <script type='text/javascript'>
+var margin = {
+  top: 10,
+  right:20,
+  bottom:10,
+  left: 20
+}
+var width = 800
+var height = 600
 
-//var spaceCircles = [30, 70, 110];
+var kx = function (d) {return d.x - 20;};
+var ky = function (d) {return d.y - 10;};
 
 var rectangle_data = [
-  {"x":10, "y":10, "width":50, "height":150, "color":"white", 
-  "name":"sari",  "stroke":"blue"},
-  {"x":40, "y":40, "width":100, "height":50, "color":"white", 
-  "name":"eric",  "stroke":"blue"}
+  {"id": "top", "children": ["right", "left"], 
+  "x":200, "y":10, "width":150, "height":50, "color":"white", 
+  "name":"Sari",  "stroke":"blue"},
+  {"id": "left", "children": {}, 
+  "x":50, "y":90, "width":150, "height":50, "color":"white", 
+  "name":"Eric",  "stroke":"blue"},
+  {"id": "right", "children": {}, 
+  "x":250, "y":90, "width":150, "height":50, "color":"white", 
+  "name":"Eric",  "stroke":"blue"}
 ]
 
 var svgContainer = d3.select("body").append("svg")
-                                    .attr("width", 200)
-                                    .attr("height", 200);
+                                    .attr("width", 2000)
+                                    .attr("height", 2000);
 
 var rectangle = svgContainer.selectAll("rect")
                           .data(rectangle_data)
@@ -43,6 +57,7 @@ var rectangleAttributes = rectangle
                        .attr("height", function (d) { return d.height; })
                        .style("fill", function (d) { return d.color;})
                        .style("stroke", function (d) { return d.stroke;})
+                       
 
 </script>
 <!--END JAVASCRIPT-->
