@@ -68,11 +68,12 @@ var div = d3.select("body")
             .style("opacity", 0);
 
 function draw_tree(tree){
+   d3.select("svg").remove()
    var bodySelection = d3.select("body");
    var svgSelection = bodySelection.append("svg")
                                    .attr("width", 2000)
                                    .attr("height", 1000);
-  ydelta = 80;
+   ydelta = 80;
    //Draw people boxes
    maxgennum = 0;
    for (i = 0; i < tree.length; i++){
