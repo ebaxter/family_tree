@@ -10,7 +10,7 @@
     
      <style> /* set the CSS */
 
-        body { font: 14px Calibri;}
+        body { font: 16px Calibri;}
 
         .myrect { 
             stroke: black;
@@ -20,7 +20,7 @@
         }
          
         .myrecttext {
-            font: 16px Calibri;     
+            font: 20px Consolas;     
         }
 
         div.tooltip {
@@ -39,16 +39,25 @@
     </style>   
     
     <script>
-    var rectangle_width = 100 
+    var rectangle_width = 180 
     var rectangle_height = 50
    
     var data = [ 
-    {"name": "Sari", "age":25,  "x":30, "y":10 },
-    {"name": "Eric", "age":30, "x":150, "y":30 },
-    {"name": "Saric", "age":100, "x":300, "y":40 }
+    {"name": "Sari", "last": "nahmad", "age":25,  "x":20, "y":10, "birthyear": 1990 },
+    {"name": "Eric", "last": "baxter", "age":30, "x":20, "y":100, "birthyear": "1890" },
+    {"name": "Saric", "last": "pee", "age":100, "x":20, "y":200, "birthyear": "now" }
     ]
     //d3.json("mydata1.json", function(data){    
    // d3.json("family.json", function(data){
+    
+    
+        var drag = d3.behavior.drag()
+            .on("drag", function(d,i) {
+                d.x += d3.event.dx
+                d.y += d3.event.dy
+                d3.select(this).attr("transform", function(d,i){
+                return "translate(" + [ d.x,d.y ] + ")"
+        })});
         
         var div = d3.select("body")
             .append("div")  // declare the tooltip div 
@@ -57,12 +66,14 @@
         
     
         var color = d3.scale.linear()
-            .domain([0,100])
-            .range(["red", "purple"])
+            .domain([0,50])
+            .range(["red", "yellow"])
         
         var canvas = d3.select("body").append("svg")
                     .attr("width", 500)
                     .attr("height", 500)
+        
+        var group = canvas.append("g")
         
         canvas.selectAll("rect")
             .data(data)
@@ -75,7 +86,7 @@
                 .attr("fill", function(d){return color(d.age);})
                 .attr("class", "myrect")
                 .on("mouseover", function(d) {
-                    div.transition().duration(10)		
+                    div.transition().duration(10)	
                         .style("opacity", .7);		  
                     div .text("Age: " + d.age)
                         .style("left", (d3.event.pageX) + "px")             
@@ -84,18 +95,32 @@
                 .on("mouseout", function(d) { 
                     div.transition().duration(500)		
                     .style("opacity", 0);	style("opacity", 0); })
-        
-        
+            
+            .attr("cursor", "move")
+            .attr("transform",function(d){return "translate(" + d.x + "," + d.y + ")"})
+            .call(drag);
+         
         canvas.selectAll("text")
-        .data(data)
-        .enter()
-            .append("text")
-            .attr("fill", "black")
-            .attr("x", function(d){return d.x + rectangle_width/2;})
-            .attr("y", function(d){return d.y + rectangle_height/2;})
-            .attr("text-anchor", "middle")
-            .text(function(d){return d.name;})
-            .attr("class", "myrecttext")
+            .data(data)
+            .enter()
+                .append("text")
+                .attr("fill", "black")
+                .attr("x", function(d){return d.x + rectangle_width/2;})
+                .attr("y", function(d){return d.y + rectangle_height/2;})
+                .attr("text-anchor", "middle")
+                .text(function(d){return d.name + " " + d.last +"," + d.birthyear ;})
+                .attr("class", "myrecttext")
+            
+            .attr("cursor", "move")
+            .attr("transform",function(d){return "translate(" + d.x + "," + d.y + ")"})
+            .call(drag)
+            
+        
+        //dragmove function
+        function dragmove(d) {
+            dragrect .attr("x", d.x = Math.max(0, Math.min(width, d3.event.x)));
+            dragrect .attr("y", d.y = Math.max(0, Math.min(height, d3.event.y)));
+        }
             
     //})
   
