@@ -19,7 +19,6 @@
             font: 16px Calibri;     
         }
 
-
      div.tooltip {
             position: absolute;    
             text-align: center;    
@@ -45,9 +44,22 @@
 document.getElementById("addBtn").onclick = add_person;
 document.getElementById("loadBtn").onclick = load_tree;
 
+
+//Should pop up input form
 function add_person(){
- alert("Adding person!");
+   var name = prompt("Name of person: ", "Anferny");
 }
+
+//Should pop up input form
+function edit_person(person, tree){
+   for (i = 0; i < tree.length; i++){
+     if (tree[i].id == person.id){
+        tree[i].first_name = "teehee"; 
+     }       
+   }
+   draw_tree(tree);
+}
+
 
 function load_tree(){
   d3.json("./json_data/example_json.json", function(error, treeData) {
@@ -56,19 +68,16 @@ function load_tree(){
   });
 }
 
-//window.onload=function(){
-//d3.json("./json_data/example_json.json", function(error, treeData) {
-//   if (error) throw error;
-//   draw_tree(treeData);
-//});}
-
 var div = d3.select("body")
             .append("div")  // declare the tooltip div 
             .attr("class", "tooltip")
             .style("opacity", 0);
 
 function draw_tree(tree){
+   //First clear everything
    d3.select("svg").remove()
+
+   //Draw tree
    var bodySelection = d3.select("body");
    var svgSelection = bodySelection.append("svg")
                                    .attr("width", 2000)
@@ -91,7 +100,7 @@ function draw_tree(tree){
      if (gennum < 0){
        yy = 100+(maxgennum+2)*ydelta;
      }
-     draw_person(svgSelection, xx+80*(i % 10), yy, tree[i]);
+     draw_person(svgSelection, xx+80*(i % 10), yy, tree[i], tree);
    }
    //Connect parents
    //loop through all pairs
@@ -112,47 +121,13 @@ function draw_tree(tree){
    }
 }
 
-function draw_person(svgSelection, xx, yy, person){
-
-
-
-/* From Sari
- .append("rect")
-                .attr("x", function(d){return d.x;})
-                .attr("y", function(d){return d.y;})
-                .attr("width", rectangle_width)
-                .attr("height", rectangle_height)
-                .attr("fill", function(d){return color(d.age);})
-                .attr("class", "myrect")
-                .on("mouseover", function(d) {
-                    div.transition().duration(10)		
-                        .style("opacity", .7);		  
-                    div .text("Age: " + d.age)
-                        .style("left", (d3.event.pageX) + "px")             
-                        .style("top", (d3.event.pageY - 28) + "px")})
-                //.on("mousemove", function(d) { div.style("opacity", .5); })
-                .on("mouseout", function(d) { 
-                    div.transition().duration(500)		
-                    .style("opacity", 0);	style("opacity", 0); })
-*/
-
-   svgSelection.on("mouseover", function(d) {
-                    div.transition().duration(10)		
-                        .style("opacity", .7);		  
-                    div .text("Age: " + 7)
-                        .style("left", (d3.event.pageX) + "px")             
-                        .style("top", (d3.event.pageY - 28) + "px")})
-                //.on("mousemove", function(d) { div.style("opacity", .5); })
-   
-  svgSelection.on("mouseout", function(d) { 
-                    div.transition().duration(500)		
-                    .style("opacity", 0);})
+function draw_person(svgSelection, xx, yy, person, tree){
 
   var txt = svgSelection.append("text")
      .attr("x",xx)
      .attr("y",yy)
      .attr("text-anchor","middle")
-     .text(person.id);
+     .text(person.first_name);
   var bbox = txt.node().getBBox();
   var rect = svgSelection.append("rect")
     .attr("x", bbox.x-bbox.width*0.25)
@@ -160,7 +135,27 @@ function draw_person(svgSelection, xx, yy, person){
     .attr("width", bbox.width*1.5)
     .attr("height", bbox.height*1.5)
     .attr("id", person.id)
-    .attr("class", "personrect")
+    .attr("class", "personrect");
+    
+   rect.on("dblclick", function(d){
+                    edit_person(person, tree);
+                    });
+
+
+   //These events interfere with double click
+   //Make this pop up somewhere else?
+   //rect.on("click", function(d) {
+   //                 div.transition().duration(10)		
+   //                     .style("opacity", .7);		  
+   //                 div .text("Age: " + 7)
+   //                     .style("left", (d3.event.pageX) + "px")             
+   //                     .style("top", (d3.event.pageY - 28) + "px")});
+   
+   //rect.on("mouseout", function(d) { 
+   //                  div.transition().duration(500)		
+   //                  .style("opacity", 0);})
+
+
 }
 
 function connect_parents(svgSelection, person1, person2){
