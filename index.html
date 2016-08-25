@@ -2,12 +2,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Family Tree</title>
+<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+<script src="jquery-3.1.0.min.js"></script>
+<script src="jquery_popup.js"></script>
+</head>
+
   <style type="text/css">
     body {
     font: 14px Calibri;
     }
+
+
+#mainform{
+width:960px;
+margin:20px auto;
+padding-top:20px;
+font-family: 'Fauna One', serif;
+display:block;
+}
+h2{
+margin-left: 65px;
+text-shadow:1px 0px 3px gray;
+}
+h3{
+font-size:18px;
+text-align:center;
+text-shadow:1px 0px 3px gray;
+}
+#onclick{
+padding:3px;
+color:green;
+cursor:pointer;
+padding:5px 5px 5px 15px;
+width:70px;
+color:white;
+background-color:#123456;
+box-shadow:1px 1px 5px grey;
+border-radius:3px;
+}
+b{
+font-size:18px;
+text-shadow:1px 0px 3px gray;
+}
+#popup{
+padding-top:80px;
+}
+.form{
+border-radius:2px;
+padding:20px 30px;
+box-shadow:0 0 15px;
+font-size:14px;
+font-weight:bold;
+width:350px;
+margin:20px 250px 0 35px;
+float:left;
+}
+input{
+width:100%;
+height:35px;
+margin-top:5px;
+border:1px solid #999;
+border-radius:3px;
+padding:5px;
+}
+input[type=button]{
+background-color:#123456;
+border:1px solid white;
+font-family: 'Fauna One', serif;
+font-Weight:bold;
+font-size:18px;
+color:white;
+width:49%;
+}
+textarea{
+width:100%;
+height:80px;
+margin-top:5px;
+border-radius:3px;
+padding:5px;
+resize:none;
+}
+#contactdiv{
+opacity:0.92;
+position: absolute;
+top: 0px;
+left: 0px;
+height: 100%;
+width: 100%;
+background: #000;
+display: none;
+}
+#logindiv{
+opacity:0.92;
+position: absolute;
+top: 0px;
+left: 0px;
+height: 100%;
+width: 100%;
+background: #000;
+display: none;
+}
+
+#login,#contact{
+width:350px;
+margin:0px;
+background-color:white;
+font-family: 'Fauna One', serif;
+position: relative;
+border: 5px solid rgb(90, 158, 181);
+}
+.img{
+float: right;
+margin-top: -35px;
+margin-right: -37px;
+}
+#contact{
+left: 50%;
+top: 50%;
+margin-left:-210px;
+margin-top:-255px;
+}
+#login{
+left: 50%;
+top: 50%;
+margin-left:-210px;
+margin-top:-158px;
+}
 
     .personrect { 
             stroke: black;
@@ -34,10 +156,40 @@
   </style>
 
 
-  <button id="addBtn">Add Person</button>
-  <button id="loadBtn">Load Tree</button>
+<button id="addBtn">Add Person</button>
+<button id="loadBtn">Load Tree</button>
 
-  <title>Family Tree</title>
+<div id="mainform">
+<div class="form" id="popup">
+<p id="onclick">Popup</p>
+</div>
+</div>
+
+<div id="contactdiv">
+<form class="form" action="#" id="contact">
+<h3>Contact Form</h3>
+<hr/><br/>
+<label>Name: <span>*</span></label>
+<br/>
+<input type="text" id="name" placeholder="Name"/><br/>
+<br/>
+<label>Email: <span>*</span></label>
+<br/>
+<input type="text" id="email" placeholder="Email"/><br/>
+<br/>
+<label>Contact No: <span>*</span></label>
+<br/>
+<input type="text" id="contactno" placeholder="10 digit Mobile no."/><br/>
+<br/>
+<label>Message:</label>
+<br/>
+<textarea id="message" placeholder="Message......."></textarea><br/>
+<br/>
+<input type="button" id="send" value="Send"/>
+<input type="button" id="cancel" value="Cancel"/>
+<br/>
+</form>
+</div>
   
 
 <script type='text/javascript'>//<![CDATA[
@@ -47,7 +199,7 @@ document.getElementById("loadBtn").onclick = load_tree;
 
 //Should pop up input form
 function add_person(){
-   var name = prompt("Name of person: ", "Anferny");
+   //var name = prompt("Name of person: ", "Anferny");
 }
 
 //Should pop up input form
@@ -92,15 +244,7 @@ function draw_tree(tree){
      }
    }
    for (i = 0; i < tree.length; i++){
-     gennum = tree[i].generation_number;
-     xx = 100;
-     if (gennum >= 0){
-       yy = 100+maxgennum*ydelta-ydelta*gennum;
-     }
-     if (gennum < 0){
-       yy = 100+(maxgennum+2)*ydelta;
-     }
-     draw_person(svgSelection, xx+80*(i % 10), yy, tree[i], tree);
+     draw_person(svgSelection, tree[i].x, tree[i].y, tree[i], tree);
    }
    //Connect parents
    //loop through all pairs
@@ -121,6 +265,28 @@ function draw_tree(tree){
    }
 }
 
+function dragmove(d) {
+    d3.select(this)
+      .style("top", ((d3.event.sourceEvent.pageY) - this.offsetHeight/2)+"px")
+      .style("left", ((d3.event.sourceEvent.pageX) - this.offsetWidth/2)+"px")
+}
+
+function movePerson(evt, moveType){
+     console.log("moving person");
+     x1 = evt.clientX;
+     y1 = evt.clientY;
+     for (i = 0; i < tree.length; i++){
+       if (tree[i].id == person.id){
+          tree[i].x = x1;
+          tree[i].y = y1;
+       }       
+     }
+     draw_tree(tree);
+}
+
+
+//http://jsfiddle.net/phpdeveloperrahul/6SF2v/
+
 function draw_person(svgSelection, xx, yy, person, tree){
 
   var txt = svgSelection.append("text")
@@ -140,22 +306,6 @@ function draw_person(svgSelection, xx, yy, person, tree){
    rect.on("dblclick", function(d){
                     edit_person(person, tree);
                     });
-
-
-   //These events interfere with double click
-   //Make this pop up somewhere else?
-   //rect.on("click", function(d) {
-   //                 div.transition().duration(10)		
-   //                     .style("opacity", .7);		  
-   //                 div .text("Age: " + 7)
-   //                     .style("left", (d3.event.pageX) + "px")             
-   //                     .style("top", (d3.event.pageY - 28) + "px")});
-   
-   //rect.on("mouseout", function(d) { 
-   //                  div.transition().duration(500)		
-   //                  .style("opacity", 0);})
-
-
 }
 
 function connect_parents(svgSelection, person1, person2){
