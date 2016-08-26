@@ -14,38 +14,6 @@
     font: 14px Calibri;
     }
 
-
-#mainform{
-width:960px;
-margin:20px auto;
-padding-top:20px;
-font-family: 'Fauna One', serif;
-display:block;
-}
-h2{
-margin-left: 65px;
-text-shadow:1px 0px 3px gray;
-}
-h3{
-font-size:18px;
-text-align:center;
-text-shadow:1px 0px 3px gray;
-}
-#onclick{
-padding:3px;
-color:green;
-cursor:pointer;
-padding:5px 5px 5px 15px;
-width:70px;
-color:white;
-background-color:#123456;
-box-shadow:1px 1px 5px grey;
-border-radius:3px;
-}
-b{
-font-size:18px;
-text-shadow:1px 0px 3px gray;
-}
 #popup{
 padding-top:80px;
 }
@@ -85,27 +53,17 @@ padding:5px;
 resize:none;
 }
 #contactdiv{
-opacity:0.92;
+opacity:0.9;
 position: absolute;
-top: 0px;
-left: 0px;
-height: 100%;
-width: 100%;
-background: #000;
-display: none;
-}
-#logindiv{
-opacity:0.92;
-position: absolute;
-top: 0px;
-left: 0px;
-height: 100%;
-width: 100%;
+top: 50px;
+left: 20px;
+height: 85%;
+width: 50%;
 background: #000;
 display: none;
 }
 
-#login,#contact{
+#contact{
 width:350px;
 margin:0px;
 background-color:white;
@@ -113,22 +71,11 @@ font-family: 'Fauna One', serif;
 position: relative;
 border: 5px solid rgb(90, 158, 181);
 }
-.img{
-float: right;
-margin-top: -35px;
-margin-right: -37px;
-}
 #contact{
 left: 50%;
 top: 50%;
 margin-left:-210px;
 margin-top:-255px;
-}
-#login{
-left: 50%;
-top: 50%;
-margin-left:-210px;
-margin-top:-158px;
 }
 
     .personrect { 
@@ -156,35 +103,23 @@ margin-top:-158px;
   </style>
 
 
-<button id="addBtn">Add Person</button>
 <button id="loadBtn">Load Tree</button>
+<button id="addbtn">Add Person</button>
 
-<div id="mainform">
-<div class="form" id="popup">
-<p id="onclick">Popup</p>
-</div>
-</div>
 
 <div id="contactdiv">
 <form class="form" action="#" id="contact">
-<h3>Contact Form</h3>
+<h3>Person Info</h3>
 <hr/><br/>
-<label>Name: <span>*</span></label>
+<label>First Name: <span>*</span></label>
 <br/>
-<input type="text" id="name" placeholder="Name"/><br/>
+<input type="text" id="first_name" placeholder="First"/><br/>
 <br/>
-<label>Email: <span>*</span></label>
+<label>Last Name: <span>*</span></label>
 <br/>
-<input type="text" id="email" placeholder="Email"/><br/>
+<input type="text" id="last_name" placeholder="Last"/><br/>
 <br/>
-<label>Contact No: <span>*</span></label>
-<br/>
-<input type="text" id="contactno" placeholder="10 digit Mobile no."/><br/>
-<br/>
-<label>Message:</label>
-<br/>
-<textarea id="message" placeholder="Message......."></textarea><br/>
-<br/>
+</br>
 <input type="button" id="send" value="Send"/>
 <input type="button" id="cancel" value="Cancel"/>
 <br/>
@@ -193,7 +128,6 @@ margin-top:-158px;
   
 
 <script type='text/javascript'>//<![CDATA[
-document.getElementById("addBtn").onclick = add_person;
 document.getElementById("loadBtn").onclick = load_tree;
 
 
@@ -206,7 +140,7 @@ function add_person(){
 function edit_person(person, tree){
    for (i = 0; i < tree.length; i++){
      if (tree[i].id == person.id){
-        tree[i].first_name = "teehee"; 
+        tree[i].first_name = "teehee";
      }       
    }
    draw_tree(tree);
