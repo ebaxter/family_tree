@@ -6,7 +6,6 @@
 <title>Family Tree</title>
 <script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
 <script src="jquery-3.1.0.min.js"></script>
-<script src="jquery_popup.js"></script>
 </head>
 
   <style type="text/css">
@@ -35,6 +34,14 @@ border:1px solid #999;
 border-radius:3px;
 padding:5px;
 }
+input_dates{
+width:50%;
+height:35px;
+margin-top:5px;
+border:1px solid #999;
+border-radius:3px;
+padding:5px;
+}
 input[type=button]{
 background-color:#123456;
 border:1px solid white;
@@ -43,14 +50,6 @@ font-Weight:bold;
 font-size:18px;
 color:white;
 width:49%;
-}
-textarea{
-width:100%;
-height:80px;
-margin-top:5px;
-border-radius:3px;
-padding:5px;
-resize:none;
 }
 #contactdiv{
 opacity:0.9;
@@ -104,23 +103,22 @@ margin-top:-255px;
 
 
 <button id="loadBtn">Load Tree</button>
-<button id="addbtn">Add Person</button>
+<button id="addBtn">Add Person</button>
 
 
 <div id="contactdiv">
 <form class="form" action="#" id="contact">
 <h3>Person Info</h3>
 <hr/><br/>
-<label>First Name: <span>*</span></label>
+<label>First Name: <span></span></label>
 <br/>
 <input type="text" id="first_name" placeholder="First"/><br/>
 <br/>
-<label>Last Name: <span>*</span></label>
+<label>Last Name: <span></span></label>
 <br/>
 <input type="text" id="last_name" placeholder="Last"/><br/>
 <br/>
-</br>
-<input type="button" id="send" value="Send"/>
+<input type="button" id="send" value="Enter"/>
 <input type="button" id="cancel" value="Cancel"/>
 <br/>
 </form>
@@ -128,14 +126,73 @@ margin-top:-255px;
   
 
 <script type='text/javascript'>
-document.getElementById("loadBtn").onclick = load_tree;
 
 //Global variable that stores tree
 tree = [];
 
+//Global variables that keeps track of mouse position when needed
+mousex = 0;
+mousey = 0;
+
+//Keeps track of whether we're trying to add a person
+adding = false;
+//Keeps track of whether we're trying to connect people
+connecting = false;
+
+document.getElementById("loadBtn").onclick = load_button_clicked;
+document.getElementById("addBtn").onclick = add_button_clicked;
+document.addEventListener("click", mouse_clicked);
+
+function add_button_clicked(){
+   //give it a little time to respond before setting adding = true
+   setTimeout(function(){
+      adding = true; 
+   }, 100);
+}
+
+function load_button_clicked(){
+    load_tree();
+}
+
+function mouse_clicked(event){
+   //console.log("mouse clicked");
+   //console.log("adding = ", adding);
+   if (adding){
+      $("#contactdiv").css("display", "block");
+      mousex = event.clientX;
+      mousey = event.clientY;
+      adding = false;
+   }
+}
+
+//Cancel and send buttons for pop up form
+$("#contact #cancel").click(function() {
+  $(this).parent().parent().hide();
+});
+// Contact form popup send-button click event.
+$("#send").click(function() {
+var first_name = $("#first_name").val();
+if (first_name == "" ){
+alert("Please specify name");
+}
+else{
+add_person(first_name);
+function validateEmail(email) {
+var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
+if (filter.test(email)) {
+return true;
+}  else {
+return false;
+}
+}
+$(this).parent().parent().hide();
+}
+});
+
+
 //Create a new person
 function add_person(first_name){
-   new_person = {"id":"yayaya", "first_name":first_name, "father":"none", "mother":"none", "x":50, "y":50};
+   new_person = {"id":"yayaya", "first_name":first_name, "father":"none", "mother":"none", "x":mousex, "y":mousey};
    tree.push(new_person);
    draw_tree();
 }
