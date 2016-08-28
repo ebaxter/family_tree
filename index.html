@@ -127,39 +127,41 @@ margin-top:-255px;
 </div>
   
 
-<script type='text/javascript'>//<![CDATA[
+<script type='text/javascript'>
 document.getElementById("loadBtn").onclick = load_tree;
 
+//Global variable that stores tree
+tree = [];
 
-//Should pop up input form
-function add_person(){
-   //var name = prompt("Name of person: ", "Anferny");
+//Create a new person
+function add_person(first_name){
+   new_person = {"id":"yayaya", "first_name":first_name, "father":"none", "mother":"none", "x":50, "y":50};
+   tree.push(new_person);
+   draw_tree();
 }
 
-//Should pop up input form
-function edit_person(person, tree){
+//Edit values for a particular person.  Activated by double clicking on person.
+function edit_person(person){
    for (i = 0; i < tree.length; i++){
      if (tree[i].id == person.id){
         tree[i].first_name = "teehee";
      }       
    }
-   draw_tree(tree);
+   draw_tree();
 }
 
-
+//Load a tree from json file.  Activated by clicking on button.
 function load_tree(){
   d3.json("./json_data/example_json.json", function(error, treeData) {
    if (error) throw error;
-   draw_tree(treeData);
+   tree = treeData;
+   draw_tree();
   });
 }
 
-var div = d3.select("body")
-            .append("div")  // declare the tooltip div 
-            .attr("class", "tooltip")
-            .style("opacity", 0);
 
-function draw_tree(tree){
+//Draw the tree
+function draw_tree(){
    //First clear everything
    d3.select("svg").remove()
 
@@ -199,12 +201,15 @@ function draw_tree(tree){
    }
 }
 
+//Should enable people to be dragged around and redraw tree.  Not working.
 function dragmove(d) {
     d3.select(this)
       .style("top", ((d3.event.sourceEvent.pageY) - this.offsetHeight/2)+"px")
       .style("left", ((d3.event.sourceEvent.pageX) - this.offsetWidth/2)+"px")
 }
 
+//http://jsfiddle.net/phpdeveloperrahul/6SF2v/
+//Not working
 function movePerson(evt, moveType){
      console.log("moving person");
      x1 = evt.clientX;
@@ -215,13 +220,11 @@ function movePerson(evt, moveType){
           tree[i].y = y1;
        }       
      }
-     draw_tree(tree);
+     draw_tree();
 }
 
-
-//http://jsfiddle.net/phpdeveloperrahul/6SF2v/
-
-function draw_person(svgSelection, xx, yy, person, tree){
+//Draw an individual person
+function draw_person(svgSelection, xx, yy, person){
 
   var txt = svgSelection.append("text")
      .attr("x",xx)
@@ -238,10 +241,11 @@ function draw_person(svgSelection, xx, yy, person, tree){
     .attr("class", "personrect");
     
    rect.on("dblclick", function(d){
-                    edit_person(person, tree);
+                    edit_person(person);
                     });
 }
 
+//Connect two parents
 function connect_parents(svgSelection, person1, person2){
    x1 = d3.select("#" + person1.id).attr("x");
    y1 = d3.select("#" + person1.id).attr("y");
@@ -257,6 +261,7 @@ function connect_parents(svgSelection, person1, person2){
                                .attr("stroke", "black");
 }
 
+//Connect a child to their parents
 function connect_child_to_parent(svgSelection,child){
    childx = d3.select("#" + child.id).attr("x");
    childy = d3.select("#" + child.id).attr("y");
