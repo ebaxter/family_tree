@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Family Tree</title>
+<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+<script src="jquery-3.1.0.min.js"></script>
+</head>
+
+  <style type="text/css">
+    body {
+    font: 14px Calibri;
+    }
+
+#popup{
+padding-top:80px;
+}
+.form{
+border-radius:2px;
+padding:20px 30px;
+box-shadow:0 0 15px;
+font-size:14px;
+font-weight:bold;
+width:350px;
+margin:20px 250px 0 35px;
+float:left;
+}
+input{
+width:100%;
+height:35px;
+margin-top:5px;
+border:1px solid #999;
+border-radius:3px;
+padding:5px;
+}
+input_dates{
+width:50%;
+height:35px;
+margin-top:5px;
+border:1px solid #999;
+border-radius:3px;
+padding:5px;
+}
+input[type=button]{
+background-color:#123456;
+border:1px solid white;
+font-family: 'Fauna One', serif;
+font-Weight:bold;
+font-size:18px;
+color:white;
+width:49%;
+}
+#contactdiv{
+opacity:0.9;
+position: absolute;
+top: 50px;
+left: 20px;
+height: 85%;
+width: 50%;
+background: #000;
+display: none;
+}
+
+#contact{
+width:350px;
+margin:0px;
+background-color:white;
+font-family: 'Fauna One', serif;
+position: relative;
+border: 5px solid rgb(90, 158, 181);
+}
+#contact{
+left: 50%;
+top: 50%;
+margin-left:-210px;
+margin-top:-255px;
+}
+
+    .personrect { 
+            stroke: black;
+            stroke-width: 5;
+            shape-rendering: crispEdges;
+            opacity: .1;
+            fill: red;
+            fill-opacity: 0.6;
+            font: 16px Calibri;     
+        }
+
+     div.tooltip {
+            position: absolute;    
+            text-align: center;    
+            width: 80px;    
+            height: 28px;        
+            padding: 10px;    
+            font: 16px Calibri;    
+            background: beige;    
+            border: 0px;                    
+            border-radius: 6px;
+        }
+
+  </style>
+
+
+<button id="loadBtn">Load Tree</button>
+<button id="addBtn">Add Person</button>
+<button id="connectBtn">Connect People</button>
+
+
+<div id="contactdiv">
+<form class="form" action="#" id="contact">
+<h3>Person Info</h3>
+<hr/><br/>
+<label>First Name: <span></span></label>
+<br/>
+<input type="text" id="first_name" placeholder="First"/><br/>
+<br/>
+<label>Last Name: <span></span></label>
+<br/>
+<input type="text" id="last_name" placeholder="Last"/><br/>
+<br/>
+<input type="button" id="send" value="Enter"/>
+<input type="button" id="cancel" value="Cancel"/>
+<br/>
+</form>
+</div>
+  
+
+<script type='text/javascript'>
+
+//Global variable that stores tree
+tree = [];
+
+//Global variable that sets new ids
+new_id = 0;
+
+//Global variables that keeps track of mouse position when needed
+mousex = 0;
+mousey = 0;
+
+//Keeps track of whether we're trying to add a person
+adding = false;
+//Keeps track of whether we're trying to connect people
+connecting = false;
+connecting_person1 = "";
+connecting_person2 = "";
+
+document.getElementById("loadBtn").onclick = load_button_clicked;
+document.getElementById("addBtn").onclick = add_button_clicked;
+document.getElementById("connectBtn").onclick = connect_button_clicked;
+document.addEventListener("click", mouse_clicked);
+
+function add_button_clicked(){
+   //give it a little time to respond before setting adding = true
+   setTimeout(function(){
+      adding = true; 
+   }, 100);
+}
+
+function connect_button_clicked(){
+   //give it a little time to respond before setting adding = true
+   setTimeout(function(){
+      connecting = true; 
+   }, 100);
+}
+
+function load_button_clicked(){
+    load_tree();
+}
+
+function mouse_clicked(event){
+   //console.log("mouse clicked");
+   //console.log("adding = ", adding);
+   if (adding){
+      $("#contactdiv").css("display", "block");
+      mousex = event.clientX;
+      mousey = event.clientY;
+      adding = false;
+   }
+}
+
+function person_clicked(id){
+    //console.log("person clicked");
+    if (connecting){
+       if (connecting_person1 == ""){
+          setTimeout(function(){
+              connecting_person1 = id;
+          }, 100);
+       }
+       if ((connecting_person1 != "") && (connecting_person2 == "")){
+          connecting_person2 = id;
+          console.log("connecting person ", connecting_person1, " to ", connecting_person2);
+          connecting = false;
+          connecting_person1 = "";
+          connecting_person2 = "";
+       }
+    }
+}
+
+//Create a new person
+function add_person(first_name){
+   new_person = {"id":"id" + String(new_id), "first_name":first_name, "father":"none", "mother":"none", "x":mousex, "y":mousey};
+   new_id += 1;
+   tree.push(new_person);
+   draw_tree();
+}
+
+//Edit values for a particular person.  Activated by double clicking on person.
+function edit_person(person){
+   for (i = 0; i < tree.length; i++){
+     if (tree[i].id == person.id){
+        tree[i].first_name = "teehee";
+     }       
+   }
+   draw_tree();
+}
+
+//Load a tree from json file.  Activated by clicking on button.
+function load_tree(){
+  d3.json("./json_data/example_json.json", function(error, treeData) {
+   if (error) throw error;
+   tree = treeData;
+   draw_tree();
+  });
+}
+
+//Draw the tree
+function draw_tree(){
+   //First clear everything
+   d3.select("svg").remove()
+
+   //Draw tree
+   var bodySelection = d3.select("body");
+   var svgSelection = bodySelection.append("svg")
+                                   .attr("width", 2000)
+                                   .attr("height", 1000);
+   ydelta = 80;
+   //Draw people boxes
+   maxgennum = 0;
+   for (i = 0; i < tree.length; i++){
+     gennum = tree[i].generation_number;
+     if (gennum > maxgennum){
+       maxgennum = gennum;
+     }
+   }
+   for (i = 0; i < tree.length; i++){
+     draw_person(svgSelection, tree[i].x, tree[i].y, tree[i], tree);
+   }
+   //Connect parents
+   //loop through all pairs
+   for (i = 0; i < tree.length-1; i++){
+       for (j = i+1; j < tree.length; j++){
+          //test to see if these two people are parents
+          for (k = 0; k < tree.length; k++){
+             if ((tree[k].father == tree[i].id && tree[k].mother == tree[j].id) || (tree[k].father == tree[j].id && tree[k].mother == tree[i].id)){
+                 connect_parents(svgSelection, tree[i], tree[j]);  
+                 break;
+             }
+          }
+       }
+    }
+   //Connect children to their parents
+   for (i = 0; i < tree.length; i++){
+      connect_child_to_parent(svgSelection,tree[i]);
+   }
+}
+
+//Should enable people to be dragged around and redraw tree.  Not working.
+function dragmove(d) {
+    d3.select(this)
+      .style("top", ((d3.event.sourceEvent.pageY) - this.offsetHeight/2)+"px")
+      .style("left", ((d3.event.sourceEvent.pageX) - this.offsetWidth/2)+"px")
+}
+
+//http://jsfiddle.net/phpdeveloperrahul/6SF2v/
+//Not working
+function movePerson(evt, moveType){
+     console.log("moving person");
+     x1 = evt.clientX;
+     y1 = evt.clientY;
+     for (i = 0; i < tree.length; i++){
+       if (tree[i].id == person.id){
+          tree[i].x = x1;
+          tree[i].y = y1;
+       }       
+     }
+     draw_tree();
+}
+
+//Draw an individual person
+function draw_person(svgSelection, xx, yy, person){
+
+  var txt = svgSelection.append("text")
+     .attr("x",xx)
+     .attr("y",yy)
+     .attr("text-anchor","middle")
+     .text(person.first_name);
+  var bbox = txt.node().getBBox();
+  var rect = svgSelection.append("rect")
+    .attr("x", bbox.x-bbox.width*0.25)
+    .attr("y", bbox.y-bbox.height*0.25)
+    .attr("width", bbox.width*1.5)
+    .attr("height", bbox.height*1.5)
+    .attr("id", person.id)
+    .attr("class", "personrect");
+    
+   rect.on("dblclick", function(d){
+                    edit_person(person);
+                    });
+
+   rect.on("click", function(d){
+      person_clicked(person.id);
+   });
+}
+
+//Connect two parents
+function connect_parents(svgSelection, person1, person2){
+   x1 = d3.select("#" + person1.id).attr("x");
+   y1 = d3.select("#" + person1.id).attr("y");
+   x2 = d3.select("#" + person2.id).attr("x");
+   y2 = d3.select("#" + person2.id).attr("y");
+   var connector = svgSelection.append("line")
+                               .attr("id",person1.id + "_" + person2.id)
+                               .attr("x1",x1)
+                               .attr("y1",y1)
+                               .attr("x2",x2)
+                               .attr("y2",y2)
+                               .attr("stroke-width", 2)
+                               .attr("stroke", "black");
+}
+
+//Connect a child to their parents
+function connect_child_to_parent(svgSelection,child){
+   childx = d3.select("#" + child.id).attr("x");
+   childy = d3.select("#" + child.id).attr("y");
+   parentx = 0.0;
+   parenty = 0.0;
+   //only father 
+   if (child.father != 'none' && child.mother == 'none'){
+      parentx = d3.select("#" + child.father).attr("x");
+      parenty = d3.select("#" + child.father).attr("y");
+   }
+   //only mother
+   if (child.father == 'none' && child.mother != 'none'){
+      parentx = d3.select("#" + child.mother).attr("x");
+      parenty = d3.select("#" + child.mother).attr("y");
+   }
+   //both parents
+   if (child.father != 'none' && child.mother != 'none'){
+      connector_name1 = "#" + child.father + "_" + child.mother;
+      connector_name2 = "#" + child.mother + "_" + child.father;
+      if (d3.select(connector_name1).empty()){
+        connector_name = connector_name2;
+      }
+      if (d3.select(connector_name2).empty()){
+        connector_name = connector_name1;
+      }
+      cx1 = d3.select(connector_name).attr("x1");
+      cy1 = d3.select(connector_name).attr("y1");
+      cx2 = d3.select(connector_name).attr("x2");
+      cy2 = d3.select(connector_name).attr("y2");
+      parentx = 0.5*(Number(cx1) + Number(cx2));
+      parenty = 0.5*(Number(cy1) + Number(cy2));
+   }
+   if (parentx > 0 && parenty > 0){
+       var connector = svgSelection.append("line")
+                               .attr("x1",childx)
+                               .attr("y1",childy)
+                               .attr("x2",parentx)
+                               .attr("y2",parenty)
+                               .attr("stroke-width", 2)
+                               .attr("stroke", "red");
+   }
+}
+
+//Cancel and send buttons for pop up form
+$("#contact #cancel").click(function() {
+  $(this).parent().parent().hide();
+});
+// Contact form popup send-button click event.
+$("#send").click(function() {
+var first_name = $("#first_name").val();
+if (first_name == "" ){
+alert("Please specify name");
+}
+else{
+add_person(first_name);
+function validateEmail(email) {
+var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
+if (filter.test(email)) {
+return true;
+}  else {
+return false;
+}
+}
+$(this).parent().parent().hide();
+}
+});
+
+</Script>
+<body>
+</body>
+</html>
