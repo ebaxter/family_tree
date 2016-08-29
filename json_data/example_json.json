@@ -1,53 +1,36 @@
 [
   {
     "first_name": "Joe", 
-    "generation_number": 2.0, 
-    "father": "none", 
     "id": "joe", 
-    "mother": "none",
     "x": 50,
     "y": 50
   }, 
   {
     "first_name": "Laura", 
-    "generation_number": 2.0, 
-    "father": "none", 
     "id": "laura", 
-    "mother": "none",
     "x": 100,
     "y": 100
   }, 
   {
     "first_name": "Jimmy", 
-    "generation_number": 1.0, 
-    "father": "joe", 
     "id": "jim", 
-    "mother": "laura",
     "x": 150,
     "y": 150
   }, 
   {
     "first_name": "john", 
-    "generation_number": 1.0, 
-    "father": "joe", 
     "id": "john", 
-    "mother": "laura",
     "x": 200,
     "y": 200
   }, 
   {
     "first_name": "Josephina", 
-    "generation_number": 1.0, 
-    "father": "none", 
     "id": "josephina", 
-    "mother": "none",
     "x": 250,
     "y": 250
   }, 
   {
     "first_name": "Jose", 
-    "generation_number": 0.0, 
-    "father": "john", 
     "id": "jose", 
     "mother": "josephina",
     "x": 300,
