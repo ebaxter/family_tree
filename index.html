@@ -54,10 +54,6 @@ width:49%;
 #contactdiv{
 opacity:0.9;
 position: absolute;
-top: 50px;
-left: 20px;
-height: 85%;
-width: 50%;
 background: #000;
 display: none;
 }
@@ -70,41 +66,25 @@ font-family: 'Fauna One', serif;
 position: relative;
 border: 5px solid rgb(90, 158, 181);
 }
-#contact{
-left: 50%;
-top: 50%;
-margin-left:-210px;
-margin-top:-255px;
+
+.personrect { 
+stroke: black;
+stroke-width: 5;
+shape-rendering: crispEdges;
+opacity: .1;
+fill: red;
+fill-opacity: 0.6;
+font: 16px Calibri;     
 }
 
-    .personrect { 
-            stroke: black;
-            stroke-width: 5;
-            shape-rendering: crispEdges;
-            opacity: .1;
-            fill: red;
-            fill-opacity: 0.6;
-            font: 16px Calibri;     
-        }
-
-     div.tooltip {
-            position: absolute;    
-            text-align: center;    
-            width: 80px;    
-            height: 28px;        
-            padding: 10px;    
-            font: 16px Calibri;    
-            background: beige;    
-            border: 0px;                    
-            border-radius: 6px;
-        }
-
-  </style>
+</style>
 
 
 <button id="loadBtn">Load Tree</button>
 <button id="addBtn">Add Person</button>
 <button id="connectBtn">Connect People</button>
+<button id="childBtn">Connect Child</button>
+<button id="undoBtn">Undo</button>
 
 
 <div id="contactdiv">
@@ -132,6 +112,9 @@ margin-top:-255px;
 people = [];
 connectors = [];
 
+//Spacing in x and y
+Dy = 50;
+
 //Global variable that sets new ids
 new_id = 0;
 
@@ -139,16 +122,27 @@ new_id = 0;
 mousex = 0;
 mousey = 0;
 
+//Global variable that keeps track of last action - for undoing
+//maybe make this an array?
+action_history = ""
+
 //Keeps track of whether we're trying to add a person
 adding = false;
 //Keeps track of whether we're trying to connect people
 connecting = false;
 connecting_person1 = "";
 connecting_person2 = "";
+//Keeps track of whether we're trying to create child relationship
+connecting_child = false;
+p1 = "";
+p2 = "";
+child = "";
 
 document.getElementById("loadBtn").onclick = load_button_clicked;
 document.getElementById("addBtn").onclick = add_button_clicked;
 document.getElementById("connectBtn").onclick = connect_button_clicked;
+document.getElementById("childBtn").onclick = child_button_clicked;
+document.getElementById("undoBtn").onclick = undo_button_clicked;
 document.addEventListener("click", mouse_clicked);
 
 //Draw tree
@@ -172,9 +166,27 @@ function connect_button_clicked(){
    }, 100);
 }
 
+function child_button_clicked(){
+   //give it a little time to respond before setting adding = true
+   setTimeout(function(){
+     connecting_child = true; 
+   }, 100);
+}
+
 function load_button_clicked(){
     load_tree();
 }
+
+function undo_button_clicked(){
+   if (action_history == "addperson"){
+      people.pop();
+   }
+   if (action_history == "connectpeople"){
+      connectors.pop();
+   }
+   draw_tree();
+}
+
 
 function mouse_clicked(event){
    //console.log("mouse clicked");
@@ -188,7 +200,7 @@ function mouse_clicked(event){
 }
 
 function person_clicked(id){
-    console.log("person clicked");
+    //console.log("person clicked");
     if (connecting){
        if (connecting_person1 == ""){
           setTimeout(function(){
@@ -197,19 +209,53 @@ function person_clicked(id){
        }
        if ((connecting_person1 != "") && (connecting_person2 == "")){
           connecting_person2 = id;
-          connect_people(connecting_person1, connecting_person2);
+          //add connection to tree
+          new_connector = {"id1":connecting_person1, "id2":connecting_person2, "type":"marriage"};
+          connectors.push(new_connector)
+          //reset variables
           connecting = false;
           connecting_person1 = "";
           connecting_person2 = "";
+          //update action history 
+          action_history = "connectpeople";
+          //re-draw tree
+          draw_tree(); 
+
        }
     }
+    if (connecting_child){
+       if (p1 == ""){
+           setTimeout(function(){
+            p1 = id;}, 100);
+        }
+        
+        if ((p2 == "") && (p1 != "")){
+           setTimeout(function(){
+            p2 = id;}, 100);
+        }
+        if ((child == "") && (p2 != "")){
+            child = id;
+            //add connection to tree
+            new_connector = {"id1":p1, "id2":p2, "id3":child, "type":"hadchild"};
+            connectors.push(new_connector);
+            //reset variables
+            p1 = "";
+            p2 = "";
+            child = "";
+            //update action history
+            action_history = "connectpeople";
+            //re-draw tree
+            draw_tree();
+        }
+    } 
 }
 
 //Create a new person
 function add_person(first_name){
-   new_person = {"id":"id" + String(new_id), "first_name":first_name, "father":"none", "mother":"none", "x":mousex, "y":mousey};
+   new_person = {"id":"id" + String(new_id), "first_name":first_name, "father":"none", "mother":"none", "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
+   action_history = "addperson";
    draw_tree();
 }
 
@@ -254,7 +300,12 @@ function draw_tree(){
    }
    //Connect people
    for (i = 0; i < connectors.length; i++){
-      connect_people(connectors[i].id1, connectors[i].id2);
+      if (connectors[i].type == "marriage"){
+         connect_people(connectors[i].id1, connectors[i].id2);
+      }
+      if (connectors[i].type == "hadchild"){
+         connect_parents_to_child(connectors[i].id1, connectors[i].id2, connectors[i].id3);
+      }
    }
 
 }
@@ -308,19 +359,93 @@ function draw_person(xx, yy, person){
 
 //Connect two people
 function connect_people(id1, id2){
-   //svgSelection = d3.select("#mainsvg");
-   x1 = d3.select("#" + id1).attr("x");
-   y1 = d3.select("#" + id1).attr("y");
-   x2 = d3.select("#" + id2).attr("x");
-   y2 = d3.select("#" + id2).attr("y");
-   var connector = svgSelection.append("line")
-                               .attr("ids",id1 + "_" + id2)
-                               .attr("x1",x1)
-                               .attr("y1",y1)
-                               .attr("x2",x2)
-                               .attr("y2",y2)
-                               .attr("stroke-width", 2)
-                               .attr("stroke", "black");
+   x1 = parseFloat(d3.select("#" + id1).attr("x"));
+   y1 = parseFloat(d3.select("#" + id1).attr("y"));
+   x2 = parseFloat(d3.select("#" + id2).attr("x"));
+   y2 = parseFloat(d3.select("#" + id2).attr("y"));
+   w1 = parseFloat(d3.select("#" + id1).attr("width"));
+   h1 = parseFloat(d3.select("#" + id1).attr("height"));
+   w2 = parseFloat(d3.select("#" + id2).attr("width"));
+   h2 = parseFloat(d3.select("#" + id2).attr("height"));
+
+   if (y1 == y2){
+      connect_type = 'samelevel';
+   }
+   if (y1 != y2){
+      connect_type = 'differentlevel';
+   }
+
+   if (connect_type == 'samelevel'){
+     if (x1 > x2){
+        startx = String(x1);
+        endx = String(x2 + w2);   
+     }
+     if (x1 < x2){
+        startx = String(x1+w1);
+        endx = String(x2);   	
+     }
+     starty = String(y1+0.5*h1);
+     endy = String(y2+0.5*h1);
+     var connector = svgSelection.append("line")
+      .attr("ids",id1 + "_" + id2)
+      .attr("x1",startx)
+      .attr("y1",starty)
+      .attr("x2",endx)
+      .attr("y2",endy)
+      .attr("stroke-width", 2)
+      .attr("stroke", "black");
+    }  
+    if (connect_type == 'differentlevel'){
+     startx = String(x1 + 0.5*w1);
+     endx = String(x2 + 0.5*w2);
+     if (y1 < y2){
+       starty = String(y1 + h1);
+       endy = String(y2);
+     } else {
+       starty = String(y1);
+       endy = String(y2 - h1);
+     }
+     var connector = svgSelection.append("line")
+      .attr("ids",id1 + "_" + id2)
+      .attr("x1",startx)
+      .attr("y1",starty)
+      .attr("x2",endx)
+      .attr("y2",endy)
+      .attr("stroke-width", 2)
+      .attr("stroke", "black");
+    }
+}
+
+//Connect parents to children
+function connect_parents_to_child(p1, p2, child){
+   p1x = parseFloat(d3.select("#" + p1).attr("x"));
+   p1y = parseFloat(d3.select("#" + p1).attr("y"));
+   p1w = parseFloat(d3.select("#" + p1).attr("width"));
+   p1h = parseFloat(d3.select("#" + p1).attr("height"));
+
+   p2x = parseFloat(d3.select("#" + p2).attr("x"));
+   p2y = parseFloat(d3.select("#" + p2).attr("y"));
+   p2w = parseFloat(d3.select("#" + p2).attr("width"));
+   p2h = parseFloat(d3.select("#" + p2).attr("height"));
+
+   childx = parseFloat(d3.select("#" + child).attr("x"));
+   childy = parseFloat(d3.select("#" + child).attr("y"));
+   childw = parseFloat(d3.select("#" + child).attr("width"));
+   childh = parseFloat(d3.select("#" + child).attr("height"));
+
+   startx = String(0.5*(p1x+0.5*p1w+p2x+0.5*p2w));
+   starty = String(0.5*(p1y+p2y));
+   endx = String(childx + 0.5*childw);
+   endy = String(childy);
+
+   var child_connector = svgSelection.append("line")
+      .attr("ids",p1 + "_" + p2 + "_" + child)
+      .attr("x1",startx)
+      .attr("y1",starty)
+      .attr("x2",endx)
+      .attr("y2",endy)
+      .attr("stroke-width", 2)
+      .attr("stroke", "black");
 }
 
 //Cancel and send buttons for pop up form
