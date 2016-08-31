@@ -2,6 +2,13 @@
 {
   "id1": "joe",
   "id2": "laura",
-  "type": "had child"
+  "type": "marriage"
+},
+{
+  "id1": "joe",
+  "id2": "laura",
+  "id3": "jim",
+  "type": "hadchild"
 }
+
 ]
