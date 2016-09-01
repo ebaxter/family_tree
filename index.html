@@ -1,108 +1,119 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Family Tree</title>
-<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
-<script src="jquery-3.1.0.min.js"></script>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Family Tree</title>
+    
+    <script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+    <script src="jquery-3.1.0.min.js"></script>
 </head>
 
-  <style type="text/css">
+<style type="text/css">
     body {
-    font: 14px Calibri;
+        font: 18px Consolas;
     }
 
-#popup{
-padding-top:80px;
-}
-.form{
-border-radius:2px;
-padding:20px 30px;
-box-shadow:0 0 15px;
-font-size:14px;
-font-weight:bold;
-width:350px;
-margin:20px 250px 0 35px;
-float:left;
-}
-input{
-width:100%;
-height:35px;
-margin-top:5px;
-border:1px solid #999;
-border-radius:3px;
-padding:5px;
-}
-input_dates{
-width:50%;
-height:35px;
-margin-top:5px;
-border:1px solid #999;
-border-radius:3px;
-padding:5px;
-}
-input[type=button]{
-background-color:#123456;
-border:1px solid white;
-font-family: 'Fauna One', serif;
-font-Weight:bold;
-font-size:18px;
-color:white;
-width:49%;
-}
-#contactdiv{
-opacity:0.9;
-position: absolute;
-background: #000;
-display: none;
-}
+    #popup {
+        padding-top:80px;
+    }
+    
+    form {
+        border-radius:10px;
+        
+    }
+    /*
+    .form {
+        border-radius:2px;
+        padding:20px 30px;
+        box-shadow:0 0 15px;
+        font-size:14px;
+        font-weight:bold;
+        width:350px;
+        margin:20px 250px 0 35px;
+        float:left;
+    }
+    
+    input {
+        width:100%;
+        height:35px;
+        margin-top:5px;
+        border:1px solid #999;
+        border-radius:3px;
+        padding:5px;
+    }
 
-#contact{
-width:350px;
-margin:0px;
-background-color:white;
-font-family: 'Fauna One', serif;
-position: relative;
-border: 5px solid rgb(90, 158, 181);
-}
+    */
+    input[type=button] {
+        background-color:transparent;
+        border:2px solid white;
+        font-family: Consolas;
+        font-Weight:bold;
+        font-size:12px;
+        color:black;
+        width:43%;
+    }
+    
+    #contactdiv {
+        opacity:1;
+        position: absolute;
+        /*background: #000;*/
+        display: none;
+    }
 
-.personrect { 
-stroke: black;
-stroke-width: 5;
-shape-rendering: crispEdges;
-opacity: .1;
-fill: red;
-fill-opacity: 0.6;
-font: 16px Calibri;     
-}
+    #contact {
+        width:250px;
+        margin-right:0px;
+        background-color: cornflowerblue;
+        font-family: Consolas;
+        position: relative;
+        border: 5px solid rgb(100, 0, 0);
+    }
+
+    .personrect { 
+        stroke: black;
+        stroke-width: 2;
+        /*shape-rendering: crispEdges;*/
+       
+        opacity: .4;
+        fill: aqua;
+        fill-opacity: 1;
+        font: 16px Calibri;     
+    }
+    
+    .button {
+        font: 16px Consolas;
+        border-radius:5px;
+        border-bottom-color: cyan;
+        border-right-color: gold;
+        border-width: thick;
+    }
 
 </style>
 
 
-<button id="loadBtn">Load Tree</button>
-<button id="addBtn">Add Person</button>
-<button id="connectBtn">Connect People</button>
-<button id="childBtn">Connect Child</button>
-<button id="undoBtn">Undo</button>
+<button id="loadBtn" class="button">Load Tree</button>
+<button id="addBtn" class="button">Add Person</button>
+<button id="connectBtn" class="button">Connect People</button>
+<button id="childBtn" class="button">Connect Child</button>
+<button id="undoBtn" class="button">Undo</button>
 
 
 <div id="contactdiv">
-<form class="form" action="#" id="contact">
-<h3>Person Info</h3>
-<hr/><br/>
-<label>First Name: <span></span></label>
-<br/>
-<input type="text" id="first_name" placeholder="First"/><br/>
-<br/>
-<label>Last Name: <span></span></label>
-<br/>
-<input type="text" id="last_name" placeholder="Last"/><br/>
-<br/>
-<input type="button" id="send" value="Enter"/>
-<input type="button" id="cancel" value="Cancel"/>
-<br/>
-</form>
+    <form class="form" action="#" id="contact">
+        <h3>Person Information</h3>
+        
+        <label>First Name: <span></span></label>
+        <br/>
+        <input type="text" id="first_name" placeholder="First Name"/><br/>
+        <br/>
+        <label>Last Name: <span></span></label>
+        <br/>
+        <input type="text" id="last_name" placeholder="Last Name"/><br/>
+        <br/>
+        <input type="button" id="send" value="Enter"/>
+        <input type="button" id="cancel" value="Cancel"/>
+        <br/><br/>
+    </form>
 </div>
   
 
@@ -454,25 +465,24 @@ $("#contact #cancel").click(function() {
 });
 // Contact form popup send-button click event.
 $("#send").click(function() {
-var first_name = $("#first_name").val();
-if (first_name == "" ){
-alert("Please specify name");
-}
-else{
-add_person(first_name);
-function validateEmail(email) {
-var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
-if (filter.test(email)) {
-return true;
-}  else {
-return false;
-}
-}
-$(this).parent().parent().hide();
-}
+    var first_name = $("#first_name").val();
+    if (first_name == "" ){
+        alert("Please specify name");
+    }
+    else{
+        add_person(first_name);
+        function validateEmail(email) {
+            var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
+            if (filter.test(email)) {
+                return true;
+            }  else {
+            return false;
+            }
+        }
+        $(this).parent().parent().hide();
+    }
 });
 
-</Script>
-<body>
-</body>
+</script>
+
 </html>
