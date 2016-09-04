@@ -1,110 +1,98 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Family Tree</title>
-<script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
-<script src="jquery-3.1.0.min.js"></script>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Family Tree</title>
+    
+    <script type="text/javascript" src="//d3js.org/d3.v3.js"></script>
+    <script src="jquery-3.1.0.min.js"></script>
 </head>
 
-  <style type="text/css">
+<style type="text/css">
     body {
-    font: 14px Calibri;
+        font: 18px Consolas;
+    }
+    #popup {
+        padding-top:80px;
+    }
+    form {
+        border-radius:10px;   
+    }
+    input[type=button] {
+        background-color:transparent;
+        border:2px solid white;
+        font-family: Consolas;
+        font-Weight:bold;
+        font-size:12px;
+        color:black;
+        width:43%;
+    }
+    #contactdiv {
+        opacity:1;
+        position: absolute;
+        /*background: #000;*/
+        display: none;
+    }
+    #contact {
+        width:250px;
+        margin-right:0px;
+        background-color: cornflowerblue;
+        font-family: Consolas;
+        position: relative;
+        border: 5px solid rgb(100, 0, 0);
+    }
+    .twopersonconnector {
+        stroke: black;
+        stroke-width: 2;
+    }
+    .childconnector {
+        stroke: black;
+        stroke-width: 2;
+    }
+    .personrect { 
+        stroke: black;
+        stroke-width: 2;
+        /*shape-rendering: crispEdges;*/
+       
+        opacity: .4;
+        fill: aqua;
+        fill-opacity: 1;
+        font: 16px Calibri;     
     }
 
-#popup{
-padding-top:80px;
-}
-.form{
-border-radius:2px;
-padding:20px 30px;
-box-shadow:0 0 15px;
-font-size:14px;
-font-weight:bold;
-width:350px;
-margin:20px 250px 0 35px;
-float:left;
-}
-input{
-width:100%;
-height:35px;
-margin-top:5px;
-border:1px solid #999;
-border-radius:3px;
-padding:5px;
-}
-input_dates{
-width:50%;
-height:35px;
-margin-top:5px;
-border:1px solid #999;
-border-radius:3px;
-padding:5px;
-}
-input[type=button]{
-background-color:#123456;
-border:1px solid white;
-font-family: 'Fauna One', serif;
-font-Weight:bold;
-font-size:18px;
-color:white;
-width:49%;
-}
-#contactdiv{
-opacity:0.9;
-position: absolute;
-background: #000;
-display: none;
-}
-
-#contact{
-width:350px;
-margin:0px;
-background-color:white;
-font-family: 'Fauna One', serif;
-position: relative;
-border: 5px solid rgb(90, 158, 181);
-}
-
-.personrect { 
-stroke: black;
-stroke-width: 5;
-shape-rendering: crispEdges;
-opacity: .1;
-fill: red;
-fill-opacity: 0.6;
-font: 16px Calibri;     
-}
+    .button {
+        font: 16px Consolas;
+        border-radius:5px;
+        border-bottom-color: cyan;
+        border-right-color: gold;
+        border-width: thick;
+    }
 
 </style>
 
-
-<button id="loadBtn">Load Tree</button>
-<button id="addBtn">Add Person</button>
-<button id="connectBtn">Connect People</button>
-<button id="childBtn">Connect Child</button>
-<button id="undoBtn">Undo</button>
-
+<button id="loadBtn" class="button">Load Tree</button>
+<button id="addBtn" class="button">Add Person</button>
+<button id="connectBtn" class="button">Connect People</button>
+<button id="childBtn" class="button">Connect Child</button>
+<button id="undoBtn" class="button">Undo</button>
 
 <div id="contactdiv">
-<form class="form" action="#" id="contact">
-<h3>Person Info</h3>
-<hr/><br/>
-<label>First Name: <span></span></label>
-<br/>
-<input type="text" id="first_name" placeholder="First"/><br/>
-<br/>
-<label>Last Name: <span></span></label>
-<br/>
-<input type="text" id="last_name" placeholder="Last"/><br/>
-<br/>
-<input type="button" id="send" value="Enter"/>
-<input type="button" id="cancel" value="Cancel"/>
-<br/>
-</form>
+    <form class="form" action="#" id="contact">
+        <h3>Person Information</h3>
+        
+        <label>First Name: <span></span></label>
+        <br/>
+        <input type="text" id="first_name" placeholder="First Name"/><br/>
+        <br/>
+        <label>Last Name: <span></span></label>
+        <br/>
+        <input type="text" id="last_name" placeholder="Last Name"/><br/>
+        <br/>
+        <input type="button" id="send" value="Enter"/>
+        <input type="button" id="cancel" value="Cancel"/>
+        <br/><br/>
+    </form>
 </div>
-  
 
 <script type='text/javascript'>
 
@@ -121,6 +109,7 @@ new_id = 0;
 //Global variables that keeps track of mouse position when needed
 mousex = 0;
 mousey = 0;
+is_mouse_down = false;
 
 //Global variable that keeps track of last action - for undoing
 //maybe make this an array?
@@ -137,6 +126,9 @@ connecting_child = false;
 p1 = "";
 p2 = "";
 child = "";
+//Keeps track of who is being dragged
+dragging_person_index = -1;
+dragging_person_id = "";
 
 document.getElementById("loadBtn").onclick = load_button_clicked;
 document.getElementById("addBtn").onclick = add_button_clicked;
@@ -144,6 +136,9 @@ document.getElementById("connectBtn").onclick = connect_button_clicked;
 document.getElementById("childBtn").onclick = child_button_clicked;
 document.getElementById("undoBtn").onclick = undo_button_clicked;
 document.addEventListener("click", mouse_clicked);
+document.addEventListener("mousedown", mouse_down);
+document.addEventListener("mouseup", mouse_up);
+document.addEventListener("mousemove", mouse_move);
 
 //Draw tree
 bodySelection = d3.select("body");
@@ -187,7 +182,6 @@ function undo_button_clicked(){
    draw_tree();
 }
 
-
 function mouse_clicked(event){
    //console.log("mouse clicked");
    //console.log("adding = ", adding);
@@ -197,6 +191,32 @@ function mouse_clicked(event){
       mousey = event.clientY;
       adding = false;
    }
+}
+
+function mouse_down(event){
+    is_mouse_down = true;
+    //determine if person was clicked
+    //dragging_person_index = who_was_clicked(event.clientX, event.clientY);
+    for (i = 0; i < people.length; i++){
+      if (people[i].id == dragging_person_id){
+	dragging_person_index = i;
+      }       
+     }
+}
+
+function mouse_up(event){
+    is_mouse_down = false;
+}
+
+function mouse_move(event){
+    if (is_mouse_down & dragging_person_index >= 0){
+       drag_person(dragging_person_index, event.clientX, event.clientY);
+    }
+}
+
+//Determine person box based on mouse coordinates
+function who_was_clicked(x, y){
+    return 3;
 }
 
 function person_clicked(id){
@@ -269,6 +289,7 @@ function edit_person(person){
    draw_tree();
 }
 
+
 //Load a tree from json file.  Activated by clicking on button.
 function load_tree(){
   d3.json("./json_data/example_json.json", function(error, peopleData) {
@@ -310,26 +331,33 @@ function draw_tree(){
 
 }
 
-//Should enable people to be dragged around and redraw tree.  Not working.
-function dragmove(d) {
-    d3.select(this)
-      .style("top", ((d3.event.sourceEvent.pageY) - this.offsetHeight/2)+"px")
-      .style("left", ((d3.event.sourceEvent.pageX) - this.offsetWidth/2)+"px")
+var selectedElement = 0;
+var currentX = 0;
+var currentY = 0;
+var currentMatrix = 0;
+
+function selectElement(evt) {
+  selectedElement = evt.target;
+  currentX = evt.clientX;
+  currentY = evt.clientY;
+  currentMatrix = selectedElement.getAttributeNS(null, "transform").slice(7,-1).split(' ');
+    for(var i=0; i<currentMatrix.length; i++) {
+      currentMatrix[i] = parseFloat(currentMatrix[i]);
+    }
+  selectedElement.setAttributeNS(null, "onmousemove", "moveElement(evt)");
 }
 
-//http://jsfiddle.net/phpdeveloperrahul/6SF2v/
-//Not working
-function movePerson(evt, moveType){
-     x1 = evt.clientX;
-     y1 = evt.clientY;
-     for (i = 0; i < people.length; i++){
-       if (people[i].id == person.id){
-          people[i].x = x1;
-          people[i].y = y1;
-       }       
-     }
-     draw_tree();
+function moveElement(evt){
+  dx = evt.clientX - currentX;
+  dy = evt.clientY - currentY;
+  currentMatrix[4] += dx;
+  currentMatrix[5] += dy;
+  newMatrix = "matrix(" + currentMatrix.join(' ') + ")";
+  selectedElement.setAttributeNS(null, "transform", newMatrix);
+  currentX = evt.clientX;
+  currentY = evt.clientY;
 }
+
 
 //Draw an individual person
 function draw_person(xx, yy, person){
@@ -347,15 +375,22 @@ function draw_person(xx, yy, person){
     .attr("height", bbox.height*1.5)
     .attr("id", person.id)
     .attr("class", "personrect");
-    
-   rect.on("dblclick", function(d){
-                    edit_person(person);
-                    });
 
    rect.on("click", function(d){
       person_clicked(person.id);
    });
+
+   rect.on("mousedown", function(d){
+     dragging_person_id = person.id;
+   });
+   
+   rect.on("dblclick", function(d){
+                    edit_person(person);
+                    });
 }
+
+
+
 
 //Connect two people
 function connect_people(id1, id2){
@@ -387,13 +422,12 @@ function connect_people(id1, id2){
      starty = String(y1+0.5*h1);
      endy = String(y2+0.5*h1);
      var connector = svgSelection.append("line")
+      .attr("class","twopersonconnector")
       .attr("ids",id1 + "_" + id2)
       .attr("x1",startx)
       .attr("y1",starty)
       .attr("x2",endx)
-      .attr("y2",endy)
-      .attr("stroke-width", 2)
-      .attr("stroke", "black");
+      .attr("y2",endy);
     }  
     if (connect_type == 'differentlevel'){
      startx = String(x1 + 0.5*w1);
@@ -406,13 +440,12 @@ function connect_people(id1, id2){
        endy = String(y2 - h1);
      }
      var connector = svgSelection.append("line")
+      .attr("class","twopersonconnector")
       .attr("ids",id1 + "_" + id2)
       .attr("x1",startx)
       .attr("y1",starty)
       .attr("x2",endx)
-      .attr("y2",endy)
-      .attr("stroke-width", 2)
-      .attr("stroke", "black");
+      .attr("y2",endy);
     }
 }
 
@@ -433,19 +466,40 @@ function connect_parents_to_child(p1, p2, child){
    childw = parseFloat(d3.select("#" + child).attr("width"));
    childh = parseFloat(d3.select("#" + child).attr("height"));
 
-   startx = String(0.5*(p1x+0.5*p1w+p2x+0.5*p2w));
-   starty = String(0.5*(p1y+p2y));
-   endx = String(childx + 0.5*childw);
-   endy = String(childy);
+   startx = 0.5*(p1x+0.5*p1w+p2x+0.5*p2w);
+   starty = 0.5*(p1y+0.5*p1h+p2y+0.5*p2h);
+   endx = childx + 0.5*childw;
+   endy = childy;
+
+   var child_connector1 = svgSelection.append("line")
+      .attr("class","childconnector")
+      .attr("child1_ids",p1 + "_" + p2 + "_" + child)
+      .attr("x1",String(startx))
+      .attr("y1",String(starty))
+      .attr("x2",String(startx))
+      .attr("y2",String(0.5*(starty + endy)));
 
    var child_connector = svgSelection.append("line")
-      .attr("ids",p1 + "_" + p2 + "_" + child)
-      .attr("x1",startx)
-      .attr("y1",starty)
-      .attr("x2",endx)
-      .attr("y2",endy)
-      .attr("stroke-width", 2)
-      .attr("stroke", "black");
+      .attr("class","childconnector")
+      .attr("child2_ids",p1 + "_" + p2 + "_" + child)
+      .attr("x1",String(startx))
+      .attr("y1",String(0.5*(starty + endy)))
+      .attr("x2",String(endx))
+      .attr("y2",String(0.5*(starty + endy)));
+
+   var child_connector = svgSelection.append("line")
+      .attr("class","childconnector")
+      .attr("child3_ids",p1 + "_" + p2 + "_" + child)
+      .attr("x1",String(endx))
+      .attr("y1",String(0.5*(starty + endy)))
+      .attr("x2",String(endx))
+      .attr("y2",String(endy));
+}
+
+function drag_person(i, mousex, mousey){
+   people[i].x = mousex;
+   people[i].y = mousey - (mousey % Dy);
+   draw_tree();
 }
 
 //Cancel and send buttons for pop up form
@@ -454,25 +508,24 @@ $("#contact #cancel").click(function() {
 });
 // Contact form popup send-button click event.
 $("#send").click(function() {
-var first_name = $("#first_name").val();
-if (first_name == "" ){
-alert("Please specify name");
-}
-else{
-add_person(first_name);
-function validateEmail(email) {
-var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
-if (filter.test(email)) {
-return true;
-}  else {
-return false;
-}
-}
-$(this).parent().parent().hide();
-}
+    var first_name = $("#first_name").val();
+    if (first_name == "" ){
+        alert("Please specify name");
+    }
+    else{
+        add_person(first_name);
+        function validateEmail(email) {
+            var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
+            if (filter.test(email)) {
+                return true;
+            }  else {
+            return false;
+            }
+        }
+        $(this).parent().parent().hide();
+    }
 });
 
-</Script>
-<body>
-</body>
+</script>
+
 </html>
