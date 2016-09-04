@@ -280,7 +280,6 @@ function add_person(first_name){
 }
 
 //Edit values for a particular person.  Activated by double clicking on person.
-/*
 function edit_person(person){
    for (i = 0; i < people.length; i++){
      if (people[i].id == person.id){
@@ -289,7 +288,7 @@ function edit_person(person){
    }
    draw_tree();
 }
-*/
+
 
 //Load a tree from json file.  Activated by clicking on button.
 function load_tree(){
@@ -385,13 +384,9 @@ function draw_person(xx, yy, person){
      dragging_person_id = person.id;
    });
    
-   /* 
-    rect.on("dblclick", function(d){
+   rect.on("dblclick", function(d){
                     edit_person(person);
                     });
-   */
-
-   //rect.addEventListener("mousedown", selectElement);
 }
 
 
