@@ -1,4 +1,5 @@
 [
+  [
   {
     "first_name": "Joe", 
     "id": "joe", 
@@ -36,4 +37,20 @@
     "x": 300,
     "y": 300
   }
+  ],
+
+  
+  [
+  {
+    "id1": "joe",
+    "id2": "laura",
+    "type": "marriage"
+  },
+  {
+    "id1": "joe",
+    "id2": "laura",
+    "id3": "jim",
+    "type": "hadchild"
+  }
+  ]
 ]
