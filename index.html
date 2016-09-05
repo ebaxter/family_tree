@@ -70,11 +70,13 @@
 
 </style>
 
-<button id="loadBtn" class="button">Load Tree</button>
 <button id="addBtn" class="button">Add Person</button>
 <button id="connectBtn" class="button">Connect People</button>
 <button id="childBtn" class="button">Connect Child</button>
 <button id="undoBtn" class="button">Undo</button>
+<button id="saveBtn" class="button">Save File</button>
+
+<input type="file" id="file-input" />
 
 <div id="contactdiv">
     <form class="form" action="#" id="contact">
@@ -87,6 +89,14 @@
         <label>Last Name: <span></span></label>
         <br/>
         <input type="text" id="last_name" placeholder="Last Name"/><br/>
+        <br/>
+        <label>Birth Date: <span></span></label>
+        <br/>
+        <input type="text" id="birth_date" placeholder="Birth Date"/><br/>
+        <br/>
+        <label>Death Date: <span></span></label>
+        <br/>
+        <input type="text" id="death_date" placeholder="Death Date"/><br/>
         <br/>
         <input type="button" id="send" value="Enter"/>
         <input type="button" id="cancel" value="Cancel"/>
@@ -129,16 +139,23 @@ child = "";
 //Keeps track of who is being dragged
 dragging_person_index = -1;
 dragging_person_id = "";
+//who is bein editted
+editting_person = false;
+editting_id = "";
 
-document.getElementById("loadBtn").onclick = load_button_clicked;
+
 document.getElementById("addBtn").onclick = add_button_clicked;
 document.getElementById("connectBtn").onclick = connect_button_clicked;
 document.getElementById("childBtn").onclick = child_button_clicked;
 document.getElementById("undoBtn").onclick = undo_button_clicked;
+document.getElementById("saveBtn").onclick = save_button_clicked;
 document.addEventListener("click", mouse_clicked);
 document.addEventListener("mousedown", mouse_down);
 document.addEventListener("mouseup", mouse_up);
 document.addEventListener("mousemove", mouse_move);
+
+document.getElementById('file-input')
+  .addEventListener('change', load_file, false);
 
 //Draw tree
 bodySelection = d3.select("body");
@@ -155,21 +172,15 @@ function add_button_clicked(){
 }
 
 function connect_button_clicked(){
-   //give it a little time to respond before setting adding = true
    setTimeout(function(){
       connecting = true; 
    }, 100);
 }
 
 function child_button_clicked(){
-   //give it a little time to respond before setting adding = true
    setTimeout(function(){
      connecting_child = true; 
    }, 100);
-}
-
-function load_button_clicked(){
-    load_tree();
 }
 
 function undo_button_clicked(){
@@ -182,9 +193,11 @@ function undo_button_clicked(){
    draw_tree();
 }
 
+function save_button_clicked(){
+   save_file();
+}
+
 function mouse_clicked(event){
-   //console.log("mouse clicked");
-   //console.log("adding = ", adding);
    if (adding){
       $("#contactdiv").css("display", "block");
       mousex = event.clientX;
@@ -271,36 +284,54 @@ function person_clicked(id){
 }
 
 //Create a new person
-function add_person(first_name){
-   new_person = {"id":"id" + String(new_id), "first_name":first_name, "father":"none", "mother":"none", "x":mousex, "y":mousey - (mousey % Dy)};
+function add_person(person_info){
+   new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
    action_history = "addperson";
    draw_tree();
 }
 
-//Edit values for a particular person.  Activated by double clicking on person.
-function edit_person(person){
+function edit_person(id, person_info){
    for (i = 0; i < people.length; i++){
-     if (people[i].id == person.id){
-        people[i].first_name = "teehee";
-     }       
+      if (people[i].id == id){
+        //can change this to update all info
+	people[i].first_name = person_info.first_name;
+	people[i].last_name = person_info.last_name;
+      }       
    }
+   action_history = "editperson";
    draw_tree();
 }
 
+function save_file(){
+  filename = 'mytree.json'
+  combined_json = [people, connectors];
+  output_txt = JSON.stringify(combined_json)
+  var a = document.createElement('a');
+  a.setAttribute('href', 'data:text/plain;charset=utf-u,'+encodeURIComponent(output_txt));
+  a.setAttribute('download', filename);
+  a.click()
+}
 
-//Load a tree from json file.  Activated by clicking on button.
-function load_tree(){
-  d3.json("./json_data/example_json.json", function(error, peopleData) {
-   if (error) throw error;
-   people = peopleData;
-    d3.json("./json_data/connectors.json", function(error, connectorData) {
-      if (error) throw error;
-      connectors = connectorData;
-      draw_tree();
-    });
-  });
+function load_file(e) {
+  var file = e.target.files[0];
+  if (!file) {
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var contents = e.target.result;
+    var contents_json = JSON.parse(contents);
+    load_tree(contents_json);
+  };
+  reader.readAsText(file);
+}
+
+function load_tree(file_contents){
+    people = file_contents[0];
+    connectors = file_contents[1];
+    draw_tree();
 }
 
 //Draw the tree
@@ -362,11 +393,31 @@ function moveElement(evt){
 //Draw an individual person
 function draw_person(xx, yy, person){
 
+  var display_name = "";
+  if ("last_name" in person){
+     display_name = person.first_name + " " + person.last_name;
+  } else{
+     display_name = person.first_name
+  }
+
+  /*
+  var display_info = "";
+  if ("birth_date" in person){
+	display_info += person.birth_date;
+  }
+  if ("death_date" in person){
+        display_info += " - " + person.death_date;
+  }
+  if (display_info != ""){
+      display_name = display_name +"\n" + display_info;
+  }
+  */
+
   var txt = svgSelection.append("text")
      .attr("x",xx)
      .attr("y",yy)
      .attr("text-anchor","middle")
-     .text(person.first_name);
+     .text(display_name);
   var bbox = txt.node().getBBox();
   var rect = svgSelection.append("rect")
     .attr("x", bbox.x-bbox.width*0.25)
@@ -385,7 +436,9 @@ function draw_person(xx, yy, person){
    });
    
    rect.on("dblclick", function(d){
-                    edit_person(person);
+	            editting_person = true;
+                    editting_id = person.id;
+		    $("#contactdiv").css("display", "block");
                     });
 }
 
@@ -411,7 +464,7 @@ function connect_people(id1, id2){
    }
 
    if (connect_type == 'samelevel'){
-     if (x1 > x2){
+     if (x1 >= x2){
         startx = String(x1);
         endx = String(x2 + w2);   
      }
@@ -437,7 +490,7 @@ function connect_people(id1, id2){
        endy = String(y2);
      } else {
        starty = String(y1);
-       endy = String(y2 - h1);
+       endy = String(y2 + h1);
      }
      var connector = svgSelection.append("line")
       .attr("class","twopersonconnector")
@@ -509,11 +562,22 @@ $("#contact #cancel").click(function() {
 // Contact form popup send-button click event.
 $("#send").click(function() {
     var first_name = $("#first_name").val();
+    var last_name = $("#last_name").val();
+    var birth_date = $("#birth_date").val();
+    var death_date = $("#death_date").val();
+    var person_info = {"first_name":first_name, "last_name":last_name, "birth_date":birth_date, "death_date":death_date};
     if (first_name == "" ){
         alert("Please specify name");
     }
     else{
-        add_person(first_name);
+	if (!editting_person){
+          add_person(person_info);
+        }
+	if (editting_person){
+          edit_person(editting_id, person_info);
+          editting_person = false;
+          editting_id = "";
+        }
         function validateEmail(email) {
             var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
             if (filter.test(email)) {
