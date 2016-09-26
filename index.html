@@ -52,12 +52,12 @@
     .personrect { 
         stroke: black;
         stroke-width: 2;
-        /*shape-rendering: crispEdges;*/
-       
         opacity: .4;
         fill: aqua;
         fill-opacity: 1;
-        font: 16px Calibri;     
+    }
+    .persontext { 
+        font: 12px Calibri;     
     }
 
     .button {
@@ -142,7 +142,6 @@ dragging_person_id = "";
 //who is bein editted
 editting_person = false;
 editting_id = "";
-
 
 document.getElementById("addBtn").onclick = add_button_clicked;
 document.getElementById("connectBtn").onclick = connect_button_clicked;
@@ -233,7 +232,7 @@ function who_was_clicked(x, y){
 }
 
 function person_clicked(id){
-    //console.log("person clicked");
+    console.log("person clicked = ", id);
     if (connecting){
        if (connecting_person1 == ""){
           setTimeout(function(){
@@ -329,8 +328,17 @@ function load_file(e) {
 }
 
 function load_tree(file_contents){
+    console.log("loading tree");
     people = file_contents[0];
     connectors = file_contents[1];
+    max_id = 0;
+    for (i = 0; i < people.length; i++){
+        this_id = parseInt(people[i].id.substring(2))
+	if (this_id > max_id){
+	   max_id = this_id;
+        }
+    }
+    new_id = max_id + 1;
     draw_tree();
 }
 
@@ -343,7 +351,6 @@ function draw_tree(){
                                 .attr("id","mainsvg")
                                 .attr("width", 2000)
                                 .attr("height", 1000);
-
 
    ydelta = 80;
    //Draw people boxes
@@ -361,34 +368,6 @@ function draw_tree(){
    }
 
 }
-
-var selectedElement = 0;
-var currentX = 0;
-var currentY = 0;
-var currentMatrix = 0;
-
-function selectElement(evt) {
-  selectedElement = evt.target;
-  currentX = evt.clientX;
-  currentY = evt.clientY;
-  currentMatrix = selectedElement.getAttributeNS(null, "transform").slice(7,-1).split(' ');
-    for(var i=0; i<currentMatrix.length; i++) {
-      currentMatrix[i] = parseFloat(currentMatrix[i]);
-    }
-  selectedElement.setAttributeNS(null, "onmousemove", "moveElement(evt)");
-}
-
-function moveElement(evt){
-  dx = evt.clientX - currentX;
-  dy = evt.clientY - currentY;
-  currentMatrix[4] += dx;
-  currentMatrix[5] += dy;
-  newMatrix = "matrix(" + currentMatrix.join(' ') + ")";
-  selectedElement.setAttributeNS(null, "transform", newMatrix);
-  currentX = evt.clientX;
-  currentY = evt.clientY;
-}
-
 
 //Draw an individual person
 function draw_person(xx, yy, person){
@@ -417,6 +396,7 @@ function draw_person(xx, yy, person){
      .attr("x",xx)
      .attr("y",yy)
      .attr("text-anchor","middle")
+     .attr("class", "persontext")
      .text(display_name);
   var bbox = txt.node().getBBox();
   var rect = svgSelection.append("rect")
@@ -438,6 +418,7 @@ function draw_person(xx, yy, person){
    rect.on("dblclick", function(d){
 	            editting_person = true;
                     editting_id = person.id;
+		    console.log("editting person = ", editting_id);
 		    $("#contactdiv").css("display", "block");
                     });
 }
@@ -447,6 +428,7 @@ function draw_person(xx, yy, person){
 
 //Connect two people
 function connect_people(id1, id2){
+   if (id1 != id2){
    x1 = parseFloat(d3.select("#" + id1).attr("x"));
    y1 = parseFloat(d3.select("#" + id1).attr("y"));
    x2 = parseFloat(d3.select("#" + id2).attr("x"));
@@ -499,6 +481,7 @@ function connect_people(id1, id2){
       .attr("y1",starty)
       .attr("x2",endx)
       .attr("y2",endy);
+    }
     }
 }
 
