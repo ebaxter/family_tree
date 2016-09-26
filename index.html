@@ -27,13 +27,13 @@
         color:black;
         width:43%;
     }
-    #contactdiv {
+    #addpersondiv {
         opacity:1;
         position: absolute;
         /*background: #000;*/
         display: none;
     }
-    #contact {
+    #addpersonform {
         width:250px;
         margin-right:0px;
         background-color: cornflowerblue;
@@ -67,19 +67,19 @@
         border-right-color: gold;
         border-width: thick;
     }
-
+  
 </style>
 
-<button id="addBtn" class="button">Add Person</button>
-<button id="connectBtn" class="button">Connect People</button>
-<button id="childBtn" class="button">Connect Child</button>
-<button id="undoBtn" class="button">Undo</button>
-<button id="saveBtn" class="button">Save File</button>
+<button id="addBtn" class="button" title ="Click somewhere to add a person.">Add Person</button>
+<button id="connectBtn" class="button" title = "Click two people to connect them.">Connect People</button>
+<button id="childBtn" class="button" title = "Click two parents and then a child to connect them.">Connect Child</button>
+<button id="undoBtn" class="button" title = "Click to undo the last action.">Undo</button>
+<button id="saveBtn" class="button" title = "Click to save tree to file." >Save File</button>
 
 <input type="file" id="file-input" />
 
-<div id="contactdiv">
-    <form class="form" action="#" id="contact">
+<div id="addpersondiv">
+    <form class="form" action="#" id="addpersonform">
         <h3>Person Information</h3>
         
         <label>First Name: <span></span></label>
@@ -198,7 +198,7 @@ function save_button_clicked(){
 
 function mouse_clicked(event){
    if (adding){
-      $("#contactdiv").css("display", "block");
+      $("#addpersondiv").css("display", "block");
       mousex = event.clientX;
       mousey = event.clientY;
       adding = false;
@@ -419,7 +419,9 @@ function draw_person(xx, yy, person){
 	            editting_person = true;
                     editting_id = person.id;
 		    console.log("editting person = ", editting_id);
-		    $("#contactdiv").css("display", "block");
+		    document.getElementById("first_name").defaultValue = person.first_name;
+		    document.getElementById("last_name").defaultValue = person.last_name;
+		    $("#addpersondiv").css("display", "block");
                     });
 }
 
@@ -539,7 +541,7 @@ function drag_person(i, mousex, mousey){
 }
 
 //Cancel and send buttons for pop up form
-$("#contact #cancel").click(function() {
+$("#addpersonform #cancel").click(function() {
   $(this).parent().parent().hide();
 });
 // Contact form popup send-button click event.
