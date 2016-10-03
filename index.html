@@ -81,17 +81,21 @@
         border-color: grey;
         border-width: thick;
     }
-  
+    #buttons{
+    position: fixed
+    }
 </style>
 
+<div id="buttons">
 <button id="addBtn" class="button" title ="Click somewhere to add a person.">Add Person</button>
 <button id="connectBtn" class="button" title = "Click two people to connect them.">Connect People</button>
 <button id="childBtn" class="button" title = "Click two parents and then a child to connect them.">Connect Child</button>
 <button id="movetreeBtn" class="button" title = "Click desired location of tree center.">Move Tree</button>
 <button id="undoBtn" class="button" title = "Click to undo the last action.">Undo</button>
 <button id="saveBtn" class="button" title = "Click to save tree to file." >Save File</button>
-
 <input type="file" id="file-input" />
+</div>
+
 
 <div id="addpersondiv">
     <form class="form" action="#" id="addpersonform">
@@ -163,8 +167,7 @@ mousey = 0;
 is_mouse_down = false;
 
 //Global variable that keeps track of last action - for undoing
-//maybe make this an array?
-action_history = ""
+action_history = [];
 
 //Keeps track of whether we're trying to add a person
 adding = false;
@@ -232,15 +235,32 @@ function movetree_button_clicked(){
    }, 100);
 }
 
+function print_action_history(){
+   for (i = 0; i < action_history.length; i++){
+      console.log("action history i = ", action_history[i]);
+   }
+}
 
 function undo_button_clicked(){
-   if (action_history == "addperson"){
-      people.pop();
+   if (action_history.length == 0){
+      console.log("no further undo information");
    }
-   if (action_history == "connectpeople"){
-      connectors.pop();
-   }
-   draw_tree();
+   else{
+       prev_action = action_history.pop();
+       console.log("prev action = ", prev_action);
+       if (prev_action == "addperson"){
+           console.log("Undoing add person");
+           people.pop();
+        }
+        if (prev_action == "connectpeople"){
+           console.log("Undoing connection");
+           connectors.pop();
+        }
+        if (prev_action == "editperson"){
+           console.log("Can't undo edit person");
+        }
+    }
+    draw_tree();
 }
 
 function save_button_clicked(){
@@ -249,9 +269,11 @@ function save_button_clicked(){
 
 function mouse_clicked(event){
    if (adding){
-      $("#addpersondiv").css("display", "block");
       mousex = event.pageX;
       mousey = event.pageY;
+      $("#addpersondiv").css("top", mousey);
+      $("#addpersondiv").css("left", mousex);
+      $("#addpersondiv").css("display", "block");
       adding = false;
    }
    if (moving_tree){
@@ -296,6 +318,8 @@ function mouse_down(event){
 
 function mouse_up(event){
     is_mouse_down = false;
+    dragging_person_index = -1;
+    dragging_person_id = "";
 }
 
 function mouse_move(event){
@@ -327,7 +351,8 @@ function person_clicked(id){
           connecting_person1 = "";
           connecting_person2 = "";
           //update action history 
-          action_history = "connectpeople";
+          action_history.push("connectpeople");
+          print_action_history();
           //re-draw tree
           draw_tree(); 
 
@@ -353,7 +378,8 @@ function person_clicked(id){
             p2 = "";
             child = "";
             //update action history
-            action_history = "connectpeople";
+            action_history.push("connectchild");
+            print_action_history();
             //re-draw tree
             draw_tree();
         }
@@ -365,7 +391,7 @@ function add_person(person_info){
    new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
-   action_history = "addperson";
+   action_history.push("addperson");
    draw_tree();
 }
 
@@ -377,7 +403,7 @@ function edit_person(id, person_info){
 	people[i].last_name = person_info.last_name;
       }       
    }
-   action_history = "editperson";
+   action_history.push("editperson");
    draw_tree();
 }
 
@@ -655,7 +681,7 @@ $("#add_send").click(function() {
 
 
 //Cancel and send buttons for edit person form
-$("#editpersonform #add_cancel").click(function() {
+$("#editpersonform #edit_cancel").click(function() {
   $(this).parent().parent().hide();
 });
 // Edit form popup send-button click event.
