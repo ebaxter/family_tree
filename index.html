@@ -525,6 +525,8 @@ function draw_person(xx, yy, person){
 		    console.log("editting person = ", editting_id);
 		    document.getElementById("first_name").defaultValue = person.first_name;
 		    document.getElementById("last_name").defaultValue = person.last_name;
+		    $("#editpersondiv").css("top", person.y);
+		    $("#editpersondiv").css("left", person.x);
 		    $("#editpersondiv").css("display", "block");
                     });
 }
