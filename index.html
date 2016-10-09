@@ -197,6 +197,9 @@ connectors = [];
 people_history = [];
 connectors_history = [];
 
+//Maximum number of states to keep in history
+max_history = 3;
+
 //Spacing in x and y
 Dy = 50;
 
@@ -207,9 +210,6 @@ new_id = 0;
 mousex = 0;
 mousey = 0;
 is_mouse_down = false;
-
-//Global variable that keeps track of last action - for undoing
-action_history = [];
 
 //Keeps track of whether we're trying to add a person
 adding = false;
@@ -284,32 +284,15 @@ function movetree_button_clicked(){
    }, 100);
 }
 
-function print_action_history(){
-   for (i = 0; i < action_history.length; i++){
-      console.log("action history i = ", action_history[i]);
-   }
-}
-
 function undo_button_clicked(){
-   if (action_history.length == 0){
+   if (people_history.length == 0){
       console.log("no further undo information");
    }
    else{
-       prev_action = action_history.pop();
-       console.log("prev action = ", prev_action);
-       if (prev_action == "addperson"){
-           console.log("Undoing add person");
-           people.pop();
-        }
-        if (prev_action == "connectpeople"){
-           console.log("Undoing connection");
-           connectors.pop();
-        }
-        if (prev_action == "editperson"){
-           console.log("Can't undo edit person");
-        }
-    }
-    draw_tree();
+      people = people_history.pop();
+      connectors = connectors_history.pop();
+   }
+   draw_tree();
 }
 
 function save_button_clicked(){
@@ -403,6 +386,15 @@ function person_clicked(id){
        }
        if ((connecting_person1 != "") && (connecting_person2 == "")){
           connecting_person2 = id;
+
+          //update action history 
+          if (people_history.length > max_history){
+              people_history.shift();
+              connectors_history.shift();
+          }
+          people_history.push(people.slice(0));
+          connectors_history.push(connectors.slice(0));
+
        	  d3.select("#" + id).style("fill", "orange");
           //add connection to tree
           new_connector = {"id1":connecting_person1, "id2":connecting_person2, "type":"marriage"};
@@ -411,9 +403,6 @@ function person_clicked(id){
           connecting = false;
           connecting_person1 = "";
           connecting_person2 = "";
-          //update action history 
-          action_history.push("connectpeople");
-          print_action_history();
           //re-draw tree
           draw_tree(); 
 
@@ -435,6 +424,15 @@ function person_clicked(id){
         }
         if ((child == "") && (p2 != "") && (id != p1) && (id != p2)){
             child = id;
+
+            //update action history
+            if (people_history.length > max_history){
+               people_history.shift();
+               connectors_history.shift();
+            }
+            people_history.push(people.slice(0));
+            connectors_history.push(connectors.slice(0));
+
 	    d3.select("#" + id).style("fill", "green");
             //add connection to tree
             new_connector = {"id1":p1, "id2":p2, "id3":child, "type":"hadchild"};
@@ -443,8 +441,6 @@ function person_clicked(id){
             p1 = "";
             p2 = "";
             child = "";
-            //update action history
-            action_history.push("connectchild");
             //we're no longer connecting child
             connecting_child = false;
             //re-draw tree
@@ -455,14 +451,28 @@ function person_clicked(id){
 
 //Create a new person
 function add_person(person_info){
+   if (people_history.length > max_history){
+       people_history.shift();
+       connectors_history.shift();
+   }
+   //slice(0) makes copy of array
+   people_history.push(people.slice(0));
+   connectors_history.push(connectors.slice(0));
+
    new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "middle_name":person_info.middle_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
-   action_history.push("addperson");
    draw_tree();
 }
 
 function edit_person(id, person_info){
+   if (people_history.length > max_history){
+        people_history.shift();
+        connectors_history.shift();
+   }
+   people_history.push(people.slice(0));
+   connectors_history.push(connectors.slice(0));
+ 
    for (i = 0; i < people.length; i++){
       if (people[i].id == id){
         //can change this to update all info
@@ -473,7 +483,7 @@ function edit_person(id, person_info){
 	people[i].death_date = person_info.death_date;
       }       
    }
-   action_history.push("editperson");
+
    draw_tree();
 }
 
