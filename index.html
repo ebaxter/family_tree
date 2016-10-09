@@ -53,6 +53,20 @@
         position: relative;
         border: solid black;
     }
+    #displaypersondiv {
+        opacity:1;
+        position: absolute;
+        display: none;
+    }
+    #displaypersondivdiv {
+        width:250px;
+        margin-right:0px;
+        background-color: white;
+        font-family: Avenir;
+        position: relative;
+        border: solid black;
+    }
+
     .twopersonconnector {
         stroke: black;
         stroke-width: 2;
@@ -90,6 +104,7 @@
 <button id="addBtn" class="button" title ="Click somewhere to add a person.">Add Person</button>
 <button id="connectBtn" class="button" title = "Click two people to connect them.">Connect People</button>
 <button id="childBtn" class="button" title = "Click two parents and then a child to connect them.">Connect Child</button>
+<button id="editBtn" class="button" title = "Click a person to edit their info.">Edit Person</button>
 <button id="movetreeBtn" class="button" title = "Click desired location of tree center.">Move Tree</button>
 <button id="undoBtn" class="button" title = "Click to undo the last action.">Undo</button>
 <button id="saveBtn" class="button" title = "Click to save tree to file." >Save File</button>
@@ -99,23 +114,27 @@
 
 <div id="addpersondiv">
     <form class="form" action="#" id="addpersonform">
-        <h3>Person Information</h3>
+        <h3>Add Person</h3>
         
-        <label>First Name <span></span></label>
+        <label>&nbsp;First Name <span></span></label>
         <br/>
-        <input type="text" id="add_first_name" placeholder="First Name"/><br/>
+        &nbsp;<input type="text" id="add_first_name" placeholder="First Name"/><br/>
         <br/>
-        <label>Last Name <span></span></label>
+        <label>&nbsp;Middle Name <span></span></label>
         <br/>
-        <input type="text" id="add_last_name" placeholder="Last Name"/><br/>
+        &nbsp;<input type="text" id="add_middle_name" placeholder="Middle Name"/><br/>
         <br/>
-        <label>Birth Date <span></span></label>
+        <label>&nbsp;Last Name <span></span></label>
         <br/>
-        <input type="text" id="add_birth_date" placeholder="Birth Date"/><br/>
+        &nbsp;<input type="text" id="add_last_name" placeholder="Last Name"/><br/>
         <br/>
-        <label>Death Date <span></span></label>
+        <label>&nbsp;Birth Date <span></span></label>
         <br/>
-        <input type="text" id="add_death_date" placeholder="Death Date"/><br/>
+        &nbsp;<input type="text" id="add_birth_date" placeholder="Birth Date"/><br/>
+        <br/>
+        <label>&nbsp; Death Date <span></span></label>
+        <br/>
+        &nbsp;<input type="text" id="add_death_date" placeholder="Death Date"/><br/>
         <br/>
         <input type="button" id="add_send" value="Enter"/>
         <input type="button" id="add_cancel" value="Cancel"/>
@@ -125,29 +144,50 @@
 
 <div id="editpersondiv">
     <form class="form" action="#" id="editpersonform">
-        <h3>Person Information</h3>
+        <h3>Edit</h3>
         
-        <label>First Name <span></span></label>
+        <label>&nbsp;First Name <span></span></label>
         <br/>
-        <input type="text" id="first_name" placeholder="First Name"/><br/>
+        <input type="text" id="edit_first_name" placeholder="First Name"/><br/>
         <br/>
-        <label>Last Name <span></span></label>
+        <label>&nbsp;Middle Name <span></span></label>
         <br/>
-        <input type="text" id="last_name" placeholder="Last Name"/><br/>
+        <input type="text" id="edit_middle_name" placeholder="Middle Name"/><br/>
         <br/>
-        <label>Birth Date <span></span></label>
+        <label>&nbsp;Last Name <span></span></label>
         <br/>
-        <input type="text" id="birth_date" placeholder="Birth Date"/><br/>
+        <input type="text" id="edit_last_name" placeholder="Last Name"/><br/>
         <br/>
-        <label>Death Date <span></span></label>
+        <label>&nbsp;Birth Date <span></span></label>
         <br/>
-        <input type="text" id="death_date" placeholder="Death Date"/><br/>
+        <input type="text" id="edit_birth_date" placeholder="Birth Date"/><br/>
+        <br/>
+        <label>&nbsp;Death Date <span></span></label>
+        <br/>
+        <input type="text" id="edit_death_date" placeholder="Death Date"/><br/>
         <br/>
         <input type="button" id="edit_send" value="Enter"/>
         <input type="button" id="edit_cancel" value="Cancel"/>
         <br/><br/>
     </form>
 </div>
+
+
+<div id="displaypersondiv">
+  <div id ="displaypersondivdiv">
+  <center><h3><div id = "display_name"></div></h3></center>
+  <br/>
+  <div id = "display_birth"></div>
+  <br/>
+  <div id = "display_death"></div>
+  <br/>
+  <div id = "display_additionalinfo"></div>
+  </br>
+  <center><input type="button" id="display_ok" value="OK"/></center>
+  <br/><br/>
+  </div>
+</div>
+
 
 <script type='text/javascript'>
 
@@ -185,13 +225,14 @@ child = "";
 //Keeps track of who is being dragged
 dragging_person_index = -1;
 dragging_person_id = "";
-//who is bein editted
+//who is being editted
 editting_person = false;
 editting_id = "";
 
 document.getElementById("addBtn").onclick = add_button_clicked;
 document.getElementById("connectBtn").onclick = connect_button_clicked;
 document.getElementById("childBtn").onclick = child_button_clicked;
+document.getElementById("editBtn").onclick = edit_button_clicked;
 document.getElementById("movetreeBtn").onclick = movetree_button_clicked;
 document.getElementById("undoBtn").onclick = undo_button_clicked;
 document.getElementById("saveBtn").onclick = save_button_clicked;
@@ -226,6 +267,12 @@ function connect_button_clicked(){
 function child_button_clicked(){
    setTimeout(function(){
      connecting_child = true; 
+   }, 100);
+}
+
+function edit_button_clicked(){
+   setTimeout(function(){
+     editting_person = true; 
    }, 100);
 }
 
@@ -307,13 +354,6 @@ function mouse_clicked(event){
 
 function mouse_down(event){
     is_mouse_down = true;
-    //determine if person was clicked
-    //dragging_person_index = who_was_clicked(event.pageX, event.pageY);
-    for (i = 0; i < people.length; i++){
-      if (people[i].id == dragging_person_id){
-	dragging_person_index = i;
-      }       
-     }
 }
 
 function mouse_up(event){
@@ -328,13 +368,30 @@ function mouse_move(event){
     }
 }
 
-//Determine person box based on mouse coordinates
-function who_was_clicked(x, y){
-    return 3;
-}
-
 function person_clicked(id){
     console.log("person clicked = ", id);
+    if (editting_person){
+       editting_id = id;
+       console.log("editting person = ", editting_id);
+       for (i = 0; i < people.length; i++){
+        if (people[i].id == editting_id){
+          person = people[i];
+        }
+       }
+       if ("first_name" in person){
+          document.getElementById("edit_first_name").defaultValue = person.first_name;
+       }
+       if ("middle_name" in person){
+          document.getElementById("edit_middle_name").defaultValue = person.middle_name;
+       }
+       if ("last_name" in person){
+          document.getElementById("edit_last_name").defaultValue = person.last_name;  
+       }
+       $("#editpersondiv").css("top", person.y);
+       $("#editpersondiv").css("left", person.x);
+       $("#editpersondiv").css("display", "block");
+    }
+		      
     if (connecting){
        if (connecting_person1 == ""){
           setTimeout(function(){
@@ -388,7 +445,7 @@ function person_clicked(id){
 
 //Create a new person
 function add_person(person_info){
-   new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
+   new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "middle_name":person_info.middle_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
    action_history.push("addperson");
@@ -400,6 +457,7 @@ function edit_person(id, person_info){
       if (people[i].id == id){
         //can change this to update all info
 	people[i].first_name = person_info.first_name;
+	people[i].middle_name = person_info.middle_name;
 	people[i].last_name = person_info.last_name;
       }       
    }
@@ -473,26 +531,41 @@ function draw_tree(){
 
 }
 
+function get_display_name(person){
+   var display_name = "";
+   if ("first_name" in person){
+        if ("last_name" in person){
+           if ("middle_name" in person){
+              display_name = person.first_name + " " + person.middle_name + " " + person.last_name;
+           } else{
+            display_name = person.first_name + " " + person.last_name;
+         }
+        } else{
+            display_name = person.first_name;
+        }
+   } else{
+       if ("last_name" in person){
+          display_name = person.last_name;
+       }
+   }
+  return display_name;
+}
+
 //Draw an individual person
 function draw_person(xx, yy, person){
 
-  var display_name = "";
-  if ("last_name" in person){
-     display_name = person.first_name + " " + person.last_name;
-  } else{
-     display_name = person.first_name
-  }
+  var display_name = get_display_name(person);
 
   /*
   var display_info = "";
-  if ("birth_date" in person){
-	display_info += person.birth_date;
+  if (person.birth_date != ""){
+	display_info += "b. " + person.birth_date;
   }
-  if ("death_date" in person){
-        display_info += " - " + person.death_date;
+  if (person.death_date != ""){
+        display_info += "d. " + person.death_date;
   }
   if (display_info != ""){
-      display_name = display_name +"\n" + display_info;
+      display_name = display_name + String.fromCharCode(13) + display_info;
   }
   */
 
@@ -517,17 +590,23 @@ function draw_person(xx, yy, person){
 
    rect.on("mousedown", function(d){
      dragging_person_id = person.id;
+     //determine which index person was clicked
+     for (i = 0; i < people.length; i++){
+       if (people[i].id == dragging_person_id){
+     	dragging_person_index = i;
+       }       
+     }
    });
    
    rect.on("dblclick", function(d){
-	            editting_person = true;
-                    editting_id = person.id;
-		    console.log("editting person = ", editting_id);
-		    document.getElementById("first_name").defaultValue = person.first_name;
-		    document.getElementById("last_name").defaultValue = person.last_name;
-		    $("#editpersondiv").css("top", person.y);
-		    $("#editpersondiv").css("left", person.x);
-		    $("#editpersondiv").css("display", "block");
+		    display_name = get_display_name(person);
+		    document.getElementById("display_name").innerHTML = display_name;
+		    console.log("displaying person");
+		    $("#displaypersondiv").css("top", person.y);
+		    $("#displaypersondiv").css("left", person.x);
+		    $("#displaypersondivdiv").css("display", "block");
+		    $("#displaypersondiv").css("display", "block");
+		    console.log("person displayed");
                     });
 }
 
@@ -610,8 +689,18 @@ function connect_parents_to_child(p1, p2, child){
    childw = parseFloat(d3.select("#" + child).attr("width"));
    childh = parseFloat(d3.select("#" + child).attr("height"));
 
-   startx = 0.5*(p1x+0.5*p1w+p2x+0.5*p2w);
-   starty = 0.5*(p1y+0.5*p1h+p2y+0.5*p2h);
+   if (p2x > p1x){
+	      startx = 0.5*(p1x+p1w+p2x);
+	      }
+   if (p2x <= p1x){
+	      startx = 0.5*(p1x+p2x+p2w);
+	      }
+   if (p2y > p1y){
+	      starty = 0.5*(p1y + p1h + p2y);
+	      }
+   if (p2y <= p1y){
+	      starty = 0.5*(p1y + p2y + p2h);
+	      }
    endx = childx + 0.5*childw;
    endy = childy;
 
@@ -646,62 +735,48 @@ function drag_person(i, mousex, mousey){
    draw_tree();
 }
 
+//"Ok" button on display person
+$("#display_ok").click(function() {
+  $(this).parent().parent().hide();
+});
+
 //Cancel and send buttons for add person form
 $("#addpersonform #add_cancel").click(function() {
   $(this).parent().parent().hide();
 });
+
 // Contact form popup send-button click event.
 $("#add_send").click(function() {
     var first_name = $("#add_first_name").val();
+    var middle_name = $("#add_middle_name").val();
     var last_name = $("#add_last_name").val();
     var birth_date = $("#add_birth_date").val();
     var death_date = $("#add_death_date").val();
-    var person_info = {"first_name":first_name, "last_name":last_name, "birth_date":birth_date, "death_date":death_date};
-    if (first_name == "" ){
-        alert("Please specify name");
-    }
-    else{
-	if (!editting_person){
-          add_person(person_info);
-        }
-	if (editting_person){
-          edit_person(editting_id, person_info);
-          editting_person = false;
-          editting_id = "";
-        }
-        function validateEmail(email) {
-            var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
-            if (filter.test(email)) {
-                return true;
-            }  else {
-            return false;
-            }
-        }
-        $(this).parent().parent().hide();
-    }
+    var person_info = {"first_name":first_name, "last_name":last_name, "middle_name":middle_name, "birth_date":birth_date, "death_date":death_date};
+    // Add info to people list
+    add_person(person_info);
+    $(this).parent().parent().hide();
 });
 
 
 //Cancel and send buttons for edit person form
 $("#editpersonform #edit_cancel").click(function() {
+  editting_person = false;
+  editting_id = "";
   $(this).parent().parent().hide();
 });
 // Edit form popup send-button click event.
 $("#edit_send").click(function() {
-    var first_name = $("#first_name").val();
-    var last_name = $("#last_name").val();
-    var birth_date = $("#birth_date").val();
-    var death_date = $("#death_date").val();
-    var person_info = {"first_name":first_name, "last_name":last_name, "birth_date":birth_date, "death_date":death_date};
-    if (first_name == "" ){
-        alert("Please specify name");
-    }
-    else{
-        edit_person(editting_id, person_info);
-        editting_person = false;
-        editting_id = "";
-        $(this).parent().parent().hide();
-    }
+    var first_name = $("#edit_first_name").val();
+    var middle_name = $("#edit_middle_name").val();
+    var last_name = $("#edit_last_name").val();
+    var birth_date = $("#edit_birth_date").val();
+    var death_date = $("#edit_death_date").val();
+    var person_info = {"first_name":first_name, "middle_name":middle_name, "last_name":last_name, "birth_date":birth_date, "death_date":death_date};
+    edit_person(editting_id, person_info);
+    editting_person = false;
+    editting_id = "";
+    $(this).parent().parent().hide();
 });
 
 
