@@ -106,6 +106,7 @@
 <button id="childBtn" class="button" title = "Click two parents and then a child to connect them.">Connect Child</button>
 <button id="editBtn" class="button" title = "Click a person to edit their info.">Edit Person</button>
 <button id="movetreeBtn" class="button" title = "Click desired location of tree center.">Move Tree</button>
+<button id="cancelBtn" class="button" title = "Click to cancel current action.">Cancel</button>
 <button id="undoBtn" class="button" title = "Click to undo the last action.">Undo</button>
 <button id="saveBtn" class="button" title = "Click to save tree to file." >Save File</button>
 <input type="file" id="file-input" />
@@ -160,11 +161,11 @@
         <br/>
         <label>&nbsp;Birth Date <span></span></label>
         <br/>
-        <input type="text" id="edit_birth_date" placeholder="Birth Date"/><br/>
+        <input type="text" id="edit_birth_date" placeholder="Birth Date and Place"/><br/>
         <br/>
         <label>&nbsp;Death Date <span></span></label>
         <br/>
-        <input type="text" id="edit_death_date" placeholder="Death Date"/><br/>
+        <input type="text" id="edit_death_date" placeholder="Death Date and Place"/><br/>
         <br/>
         <input type="button" id="edit_send" value="Enter"/>
         <input type="button" id="edit_cancel" value="Cancel"/>
@@ -194,6 +195,11 @@
 //Global variable that stores tree
 people = [];
 connectors = [];
+people_history = [];
+connectors_history = [];
+
+//Maximum number of states to keep in history
+max_history = 3;
 
 //Spacing in x and y
 Dy = 50;
@@ -205,9 +211,6 @@ new_id = 0;
 mousex = 0;
 mousey = 0;
 is_mouse_down = false;
-
-//Global variable that keeps track of last action - for undoing
-action_history = [];
 
 //Keeps track of whether we're trying to add a person
 adding = false;
@@ -235,6 +238,7 @@ document.getElementById("childBtn").onclick = child_button_clicked;
 document.getElementById("editBtn").onclick = edit_button_clicked;
 document.getElementById("movetreeBtn").onclick = movetree_button_clicked;
 document.getElementById("undoBtn").onclick = undo_button_clicked;
+document.getElementById("cancelBtn").onclick = cancel_button_clicked;
 document.getElementById("saveBtn").onclick = save_button_clicked;
 document.addEventListener("click", mouse_clicked);
 document.addEventListener("mousedown", mouse_down);
@@ -282,32 +286,33 @@ function movetree_button_clicked(){
    }, 100);
 }
 
-function print_action_history(){
-   for (i = 0; i < action_history.length; i++){
-      console.log("action history i = ", action_history[i]);
-   }
+function cancel_button_clicked(){
+   adding = false;
+   moving_tree = false;
+   connecting = false;
+   connecting_person1 = "";
+   connecting_person2 = "";
+   connecting_child = false;
+   p1 = "";
+   p2 = "";
+   child = "";
+   dragging_person_index = -1;
+   dragging_person_id = "";
+   editting_person = false;
+   editting_id = "";
+   draw_tree();
 }
 
+
 function undo_button_clicked(){
-   if (action_history.length == 0){
+   if (people_history.length == 0){
       console.log("no further undo information");
    }
    else{
-       prev_action = action_history.pop();
-       console.log("prev action = ", prev_action);
-       if (prev_action == "addperson"){
-           console.log("Undoing add person");
-           people.pop();
-        }
-        if (prev_action == "connectpeople"){
-           console.log("Undoing connection");
-           connectors.pop();
-        }
-        if (prev_action == "editperson"){
-           console.log("Can't undo edit person");
-        }
-    }
-    draw_tree();
+      people = people_history.pop();
+      connectors = connectors_history.pop();
+   }
+   draw_tree();
 }
 
 function save_button_clicked(){
@@ -372,21 +377,31 @@ function person_clicked(id){
     console.log("person clicked = ", id);
     if (editting_person){
        editting_id = id;
-       console.log("editting person = ", editting_id);
        for (i = 0; i < people.length; i++){
         if (people[i].id == editting_id){
           person = people[i];
         }
        }
-       if ("first_name" in person){
-          document.getElementById("edit_first_name").defaultValue = person.first_name;
-       }
-       if ("middle_name" in person){
-          document.getElementById("edit_middle_name").defaultValue = person.middle_name;
-       }
-       if ("last_name" in person){
-          document.getElementById("edit_last_name").defaultValue = person.last_name;  
-       }
+       console.log("editting = ", editting_id);
+       console.log("editting first name= ", person.first_name);
+
+       default_first_name = " ";
+       default_middle_name = " ";
+       default_last_name = " ";
+       default_birth_date = " ";
+       default_death_date = " ";
+       if ("first_name" in person){default_first_name = person.first_name;}
+       if ("middle_name" in person){default_middle_name = person.middle_name;}
+       if ("last_name" in person){default_last_name = person.last_name;}
+       if ("birth_date" in person){default_birth_date = person.birth_date;}
+       if ("death_date" in person){default_death_date = person.death_date;}
+       console.log("default birth date = ", default_birth_date);
+       document.getElementById("edit_first_name").value = default_first_name;
+       document.getElementById("edit_middle_name").value = default_middle_name;
+       document.getElementById("edit_last_name").value = default_last_name;
+       document.getElementById("edit_birth_date").value = default_birth_date;
+       document.getElementById("edit_death_date").value = default_death_date;
+
        $("#editpersondiv").css("top", person.y);
        $("#editpersondiv").css("left", person.x);
        $("#editpersondiv").css("display", "block");
@@ -396,10 +411,20 @@ function person_clicked(id){
        if (connecting_person1 == ""){
           setTimeout(function(){
               connecting_person1 = id;
-          }, 100);
+              draw_tree();
+          }, 50);
        }
        if ((connecting_person1 != "") && (connecting_person2 == "")){
           connecting_person2 = id;
+
+          //update action history 
+          if (people_history.length > max_history){
+              people_history.shift();
+              connectors_history.shift();
+          }
+          people_history.push(people.slice(0));
+          connectors_history.push(connectors.slice(0));
+
           //add connection to tree
           new_connector = {"id1":connecting_person1, "id2":connecting_person2, "type":"marriage"};
           connectors.push(new_connector)
@@ -407,26 +432,34 @@ function person_clicked(id){
           connecting = false;
           connecting_person1 = "";
           connecting_person2 = "";
-          //update action history 
-          action_history.push("connectpeople");
-          print_action_history();
-          //re-draw tree
-          draw_tree(); 
-
+          draw_tree();
        }
     }
     if (connecting_child){
        if (p1 == ""){
            setTimeout(function(){
-            p1 = id;}, 100);
+              p1 = id;
+              draw_tree();
+            }, 100);
         }
         
-        if ((p2 == "") && (p1 != "")){
+        if ((p2 == "") && (p1 != "") && (id != p1)){
            setTimeout(function(){
-            p2 = id;}, 100);
+              p2 = id;
+              draw_tree();
+           }, 100);
         }
-        if ((child == "") && (p2 != "")){
+        if ((child == "") && (p2 != "") && (id != p1) && (id != p2)){
             child = id;
+
+            //update action history
+            if (people_history.length > max_history){
+               people_history.shift();
+               connectors_history.shift();
+            }
+            people_history.push(people.slice(0));
+            connectors_history.push(connectors.slice(0));
+
             //add connection to tree
             new_connector = {"id1":p1, "id2":p2, "id3":child, "type":"hadchild"};
             connectors.push(new_connector);
@@ -434,10 +467,8 @@ function person_clicked(id){
             p1 = "";
             p2 = "";
             child = "";
-            //update action history
-            action_history.push("connectchild");
-            print_action_history();
-            //re-draw tree
+            //we're no longer connecting child
+            connecting_child = false;
             draw_tree();
         }
     } 
@@ -445,23 +476,39 @@ function person_clicked(id){
 
 //Create a new person
 function add_person(person_info){
+   if (people_history.length > max_history){
+       people_history.shift();
+       connectors_history.shift();
+   }
+   //slice(0) makes copy of array
+   people_history.push(people.slice(0));
+   connectors_history.push(connectors.slice(0));
+
    new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "middle_name":person_info.middle_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
-   action_history.push("addperson");
    draw_tree();
 }
 
 function edit_person(id, person_info){
+   if (people_history.length > max_history){
+        people_history.shift();
+        connectors_history.shift();
+   }
+   people_history.push(people.slice(0));
+   connectors_history.push(connectors.slice(0));
+ 
    for (i = 0; i < people.length; i++){
       if (people[i].id == id){
         //can change this to update all info
 	people[i].first_name = person_info.first_name;
 	people[i].middle_name = person_info.middle_name;
 	people[i].last_name = person_info.last_name;
+	people[i].birth_date = person_info.birth_date;
+	people[i].death_date = person_info.death_date;
       }       
    }
-   action_history.push("editperson");
+
    draw_tree();
 }
 
@@ -518,6 +565,15 @@ function draw_tree(){
    //Draw people boxes
    for (i = 0; i < people.length; i++){
      draw_person(people[i].x, people[i].y, people[i]);
+     if (p1 == people[i].id){
+       	 d3.select("#" + p1).style("fill", "red");
+     }
+     if (p2 == people[i].id){
+       	 d3.select("#" + p2).style("fill", "blue");
+     }
+     if (connecting_person1 == people[i].id){
+       	 d3.select("#" + connecting_person1).style("fill", "orange");
+     }
    }
    //Connect people
    for (i = 0; i < connectors.length; i++){
@@ -551,23 +607,30 @@ function get_display_name(person){
   return display_name;
 }
 
+function get_display_birth(person){
+   var display_birth = "";
+   if ("birth_date" in person){
+      if (person.birth_date != ""){
+         display_birth =  "&nbsp; b. " + person.birth_date;
+       }
+   }
+   return display_birth;
+}
+
+function get_display_death(person){
+   var display_death = "";
+   if ("death_date" in person){
+      if (person.death_date != ""){
+         display_death = "&nbsp; d. " + person.death_date;
+      }
+   }
+   return display_death;
+}
+
+
 //Draw an individual person
 function draw_person(xx, yy, person){
-
   var display_name = get_display_name(person);
-
-  /*
-  var display_info = "";
-  if (person.birth_date != ""){
-	display_info += "b. " + person.birth_date;
-  }
-  if (person.death_date != ""){
-        display_info += "d. " + person.death_date;
-  }
-  if (display_info != ""){
-      display_name = display_name + String.fromCharCode(13) + display_info;
-  }
-  */
 
   var txt = svgSelection.append("text")
      .attr("x",xx)
@@ -601,17 +664,17 @@ function draw_person(xx, yy, person){
    rect.on("dblclick", function(d){
 		    display_name = get_display_name(person);
 		    document.getElementById("display_name").innerHTML = display_name;
-		    console.log("displaying person");
+		    display_birth = get_display_birth(person);
+		    document.getElementById("display_birth").innerHTML = display_birth;		     
+		    display_death = get_display_death(person);
+		    document.getElementById("display_death").innerHTML = display_death;		     
+
 		    $("#displaypersondiv").css("top", person.y);
 		    $("#displaypersondiv").css("left", person.x);
 		    $("#displaypersondivdiv").css("display", "block");
 		    $("#displaypersondiv").css("display", "block");
-		    console.log("person displayed");
                     });
 }
-
-
-
 
 //Connect two people
 function connect_people(id1, id2){
@@ -625,6 +688,7 @@ function connect_people(id1, id2){
    w2 = parseFloat(d3.select("#" + id2).attr("width"));
    h2 = parseFloat(d3.select("#" + id2).attr("height"));
 
+   var connect_type = "";
    if (y1 == y2){
       connect_type = 'samelevel';
    }
