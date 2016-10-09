@@ -194,6 +194,8 @@
 //Global variable that stores tree
 people = [];
 connectors = [];
+people_history = [];
+connectors_history = [];
 
 //Spacing in x and y
 Dy = 50;
@@ -395,11 +397,13 @@ function person_clicked(id){
     if (connecting){
        if (connecting_person1 == ""){
           setTimeout(function(){
+       	      d3.select("#" + id).style("fill", "orange");
               connecting_person1 = id;
           }, 100);
        }
        if ((connecting_person1 != "") && (connecting_person2 == "")){
           connecting_person2 = id;
+       	  d3.select("#" + id).style("fill", "orange");
           //add connection to tree
           new_connector = {"id1":connecting_person1, "id2":connecting_person2, "type":"marriage"};
           connectors.push(new_connector)
@@ -418,15 +422,20 @@ function person_clicked(id){
     if (connecting_child){
        if (p1 == ""){
            setTimeout(function(){
-            p1 = id;}, 100);
+              p1 = id;
+	      d3.select("#" + id).style("fill", "red");
+            }, 100);
         }
         
-        if ((p2 == "") && (p1 != "")){
+        if ((p2 == "") && (p1 != "") && (id != p1)){
            setTimeout(function(){
-            p2 = id;}, 100);
+              p2 = id;
+	      d3.select("#" + id).style("fill", "blue");
+           }, 100);
         }
-        if ((child == "") && (p2 != "")){
+        if ((child == "") && (p2 != "") && (id != p1) && (id != p2)){
             child = id;
+	    d3.select("#" + id).style("fill", "green");
             //add connection to tree
             new_connector = {"id1":p1, "id2":p2, "id3":child, "type":"hadchild"};
             connectors.push(new_connector);
@@ -436,7 +445,8 @@ function person_clicked(id){
             child = "";
             //update action history
             action_history.push("connectchild");
-            print_action_history();
+            //we're no longer connecting child
+            connecting_child = false;
             //re-draw tree
             draw_tree();
         }
@@ -520,6 +530,15 @@ function draw_tree(){
    //Draw people boxes
    for (i = 0; i < people.length; i++){
      draw_person(people[i].x, people[i].y, people[i]);
+     if (p1 == people[i].id){
+       	 d3.select("#" + p1).style("fill", "red");
+     }
+     if (p2 == people[i].id){
+       	 d3.select("#" + p2).style("fill", "blue");
+     }
+     if (connecting_person1 == people[i].id){
+       	 d3.select("#" + connecting_person1).style("fill", "orange");
+     }
    }
    //Connect people
    for (i = 0; i < connectors.length; i++){
@@ -622,9 +641,6 @@ function draw_person(xx, yy, person){
                     });
 }
 
-
-
-
 //Connect two people
 function connect_people(id1, id2){
    if (id1 != id2){
@@ -637,6 +653,7 @@ function connect_people(id1, id2){
    w2 = parseFloat(d3.select("#" + id2).attr("width"));
    h2 = parseFloat(d3.select("#" + id2).attr("height"));
 
+   var connect_type = "";
    if (y1 == y2){
       connect_type = 'samelevel';
    }
