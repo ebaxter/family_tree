@@ -106,6 +106,7 @@
 <button id="childBtn" class="button" title = "Click two parents and then a child to connect them.">Connect Child</button>
 <button id="editBtn" class="button" title = "Click a person to edit their info.">Edit Person</button>
 <button id="movetreeBtn" class="button" title = "Click desired location of tree center.">Move Tree</button>
+<button id="cancelBtn" class="button" title = "Click to cancel current action.">Cancel</button>
 <button id="undoBtn" class="button" title = "Click to undo the last action.">Undo</button>
 <button id="saveBtn" class="button" title = "Click to save tree to file." >Save File</button>
 <input type="file" id="file-input" />
@@ -237,6 +238,7 @@ document.getElementById("childBtn").onclick = child_button_clicked;
 document.getElementById("editBtn").onclick = edit_button_clicked;
 document.getElementById("movetreeBtn").onclick = movetree_button_clicked;
 document.getElementById("undoBtn").onclick = undo_button_clicked;
+document.getElementById("cancelBtn").onclick = cancel_button_clicked;
 document.getElementById("saveBtn").onclick = save_button_clicked;
 document.addEventListener("click", mouse_clicked);
 document.addEventListener("mousedown", mouse_down);
@@ -283,6 +285,24 @@ function movetree_button_clicked(){
      moving_tree = true; 
    }, 100);
 }
+
+function cancel_button_clicked(){
+   adding = false;
+   moving_tree = false;
+   connecting = false;
+   connecting_person1 = "";
+   connecting_person2 = "";
+   connecting_child = false;
+   p1 = "";
+   p2 = "";
+   child = "";
+   dragging_person_index = -1;
+   dragging_person_id = "";
+   editting_person = false;
+   editting_id = "";
+   draw_tree();
+}
+
 
 function undo_button_clicked(){
    if (people_history.length == 0){
@@ -357,21 +377,31 @@ function person_clicked(id){
     console.log("person clicked = ", id);
     if (editting_person){
        editting_id = id;
-       console.log("editting person = ", editting_id);
        for (i = 0; i < people.length; i++){
         if (people[i].id == editting_id){
           person = people[i];
         }
        }
-       if ("first_name" in person){
-          document.getElementById("edit_first_name").defaultValue = person.first_name;
-       }
-       if ("middle_name" in person){
-          document.getElementById("edit_middle_name").defaultValue = person.middle_name;
-       }
-       if ("last_name" in person){
-          document.getElementById("edit_last_name").defaultValue = person.last_name;  
-       }
+       console.log("editting = ", editting_id);
+       console.log("editting first name= ", person.first_name);
+
+       default_first_name = " ";
+       default_middle_name = " ";
+       default_last_name = " ";
+       default_birth_date = " ";
+       default_death_date = " ";
+       if ("first_name" in person){default_first_name = person.first_name;}
+       if ("middle_name" in person){default_middle_name = person.middle_name;}
+       if ("last_name" in person){default_last_name = person.last_name;}
+       if ("birth_date" in person){default_birth_date = person.birth_date;}
+       if ("death_date" in person){default_death_date = person.death_date;}
+       console.log("default birth date = ", default_birth_date);
+       document.getElementById("edit_first_name").value = default_first_name;
+       document.getElementById("edit_middle_name").value = default_middle_name;
+       document.getElementById("edit_last_name").value = default_last_name;
+       document.getElementById("edit_birth_date").value = default_birth_date;
+       document.getElementById("edit_death_date").value = default_death_date;
+
        $("#editpersondiv").css("top", person.y);
        $("#editpersondiv").css("left", person.x);
        $("#editpersondiv").css("display", "block");
@@ -380,9 +410,9 @@ function person_clicked(id){
     if (connecting){
        if (connecting_person1 == ""){
           setTimeout(function(){
-       	      d3.select("#" + id).style("fill", "orange");
               connecting_person1 = id;
-          }, 100);
+              draw_tree();
+          }, 50);
        }
        if ((connecting_person1 != "") && (connecting_person2 == "")){
           connecting_person2 = id;
@@ -395,7 +425,6 @@ function person_clicked(id){
           people_history.push(people.slice(0));
           connectors_history.push(connectors.slice(0));
 
-       	  d3.select("#" + id).style("fill", "orange");
           //add connection to tree
           new_connector = {"id1":connecting_person1, "id2":connecting_person2, "type":"marriage"};
           connectors.push(new_connector)
@@ -403,23 +432,21 @@ function person_clicked(id){
           connecting = false;
           connecting_person1 = "";
           connecting_person2 = "";
-          //re-draw tree
-          draw_tree(); 
-
+          draw_tree();
        }
     }
     if (connecting_child){
        if (p1 == ""){
            setTimeout(function(){
               p1 = id;
-	      d3.select("#" + id).style("fill", "red");
+              draw_tree();
             }, 100);
         }
         
         if ((p2 == "") && (p1 != "") && (id != p1)){
            setTimeout(function(){
               p2 = id;
-	      d3.select("#" + id).style("fill", "blue");
+              draw_tree();
            }, 100);
         }
         if ((child == "") && (p2 != "") && (id != p1) && (id != p2)){
@@ -433,7 +460,6 @@ function person_clicked(id){
             people_history.push(people.slice(0));
             connectors_history.push(connectors.slice(0));
 
-	    d3.select("#" + id).style("fill", "green");
             //add connection to tree
             new_connector = {"id1":p1, "id2":p2, "id3":child, "type":"hadchild"};
             connectors.push(new_connector);
@@ -443,7 +469,6 @@ function person_clicked(id){
             child = "";
             //we're no longer connecting child
             connecting_child = false;
-            //re-draw tree
             draw_tree();
         }
     } 
@@ -586,7 +611,7 @@ function get_display_birth(person){
    var display_birth = "";
    if ("birth_date" in person){
       if (person.birth_date != ""){
-         display_birth = "b. " + person.birth_date;
+         display_birth =  "&nbsp; b. " + person.birth_date;
        }
    }
    return display_birth;
@@ -596,7 +621,7 @@ function get_display_death(person){
    var display_death = "";
    if ("death_date" in person){
       if (person.death_date != ""){
-         display_death = "d. " + person.death_date;
+         display_death = "&nbsp; d. " + person.death_date;
       }
    }
    return display_death;
