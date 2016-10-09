@@ -160,11 +160,11 @@
         <br/>
         <label>&nbsp;Birth Date <span></span></label>
         <br/>
-        <input type="text" id="edit_birth_date" placeholder="Birth Date"/><br/>
+        <input type="text" id="edit_birth_date" placeholder="Birth Date and Place"/><br/>
         <br/>
         <label>&nbsp;Death Date <span></span></label>
         <br/>
-        <input type="text" id="edit_death_date" placeholder="Death Date"/><br/>
+        <input type="text" id="edit_death_date" placeholder="Death Date and Place"/><br/>
         <br/>
         <input type="button" id="edit_send" value="Enter"/>
         <input type="button" id="edit_cancel" value="Cancel"/>
@@ -459,6 +459,8 @@ function edit_person(id, person_info){
 	people[i].first_name = person_info.first_name;
 	people[i].middle_name = person_info.middle_name;
 	people[i].last_name = person_info.last_name;
+	people[i].birth_date = person_info.birth_date;
+	people[i].death_date = person_info.death_date;
       }       
    }
    action_history.push("editperson");
@@ -551,23 +553,30 @@ function get_display_name(person){
   return display_name;
 }
 
+function get_display_birth(person){
+   var display_birth = "";
+   if ("birth_date" in person){
+      if (person.birth_date != ""){
+         display_birth = "b. " + person.birth_date;
+       }
+   }
+   return display_birth;
+}
+
+function get_display_death(person){
+   var display_death = "";
+   if ("death_date" in person){
+      if (person.death_date != ""){
+         display_death = "d. " + person.death_date;
+      }
+   }
+   return display_death;
+}
+
+
 //Draw an individual person
 function draw_person(xx, yy, person){
-
   var display_name = get_display_name(person);
-
-  /*
-  var display_info = "";
-  if (person.birth_date != ""){
-	display_info += "b. " + person.birth_date;
-  }
-  if (person.death_date != ""){
-        display_info += "d. " + person.death_date;
-  }
-  if (display_info != ""){
-      display_name = display_name + String.fromCharCode(13) + display_info;
-  }
-  */
 
   var txt = svgSelection.append("text")
      .attr("x",xx)
@@ -601,12 +610,15 @@ function draw_person(xx, yy, person){
    rect.on("dblclick", function(d){
 		    display_name = get_display_name(person);
 		    document.getElementById("display_name").innerHTML = display_name;
-		    console.log("displaying person");
+		    display_birth = get_display_birth(person);
+		    document.getElementById("display_birth").innerHTML = display_birth;		     
+		    display_death = get_display_death(person);
+		    document.getElementById("display_death").innerHTML = display_death;		     
+
 		    $("#displaypersondiv").css("top", person.y);
 		    $("#displaypersondiv").css("left", person.x);
 		    $("#displaypersondivdiv").css("display", "block");
 		    $("#displaypersondiv").css("display", "block");
-		    console.log("person displayed");
                     });
 }
 
