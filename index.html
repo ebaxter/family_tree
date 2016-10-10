@@ -137,6 +137,10 @@
         <br/>
         &nbsp;<input type="text" id="add_death_date" placeholder="Death Date"/><br/>
         <br/>
+        <label>&nbsp; Additional Information <span></span></label>
+        <br/>
+        &nbsp;<input type="text" id="add_extra_info" placeholder="Additional Info"/><br/>
+        <br/>
         <input type="button" id="add_send" value="Enter"/>
         <input type="button" id="add_cancel" value="Cancel"/>
         <br/><br/>
@@ -167,6 +171,10 @@
         <br/>
         <input type="text" id="edit_death_date" placeholder="Death Date and Place"/><br/>
         <br/>
+        <label>&nbsp;Additional Information <span></span></label>
+        <br/>
+        <input type="text" id="edit_extra_info" placeholder="Additional Info"/><br/>
+        <br/>
         <input type="button" id="edit_send" value="Enter"/>
         <input type="button" id="edit_cancel" value="Cancel"/>
         <br/><br/>
@@ -182,7 +190,7 @@
   <br/>
   <div id = "display_death"></div>
   <br/>
-  <div id = "display_additionalinfo"></div>
+  <div id = "display_extra_info"></div>
   </br>
   <center><input type="button" id="display_ok" value="OK"/></center>
   <br/><br/>
@@ -248,12 +256,7 @@ document.addEventListener("mousemove", mouse_move);
 document.getElementById('file-input')
   .addEventListener('change', load_file, false);
 
-//Draw tree
 bodySelection = d3.select("body");
-svgSelection = bodySelection.append("svg")
-                            .attr("id","mainsvg")
-                            .attr("width", 2000)
-                            .attr("height", 1000);
 
 function add_button_clicked(){
    //give it a little time to respond before setting adding = true
@@ -382,25 +385,25 @@ function person_clicked(id){
           person = people[i];
         }
        }
-       console.log("editting = ", editting_id);
-       console.log("editting first name= ", person.first_name);
-
        default_first_name = " ";
        default_middle_name = " ";
        default_last_name = " ";
        default_birth_date = " ";
        default_death_date = " ";
+       default_extra_info = " ";
        if ("first_name" in person){default_first_name = person.first_name;}
        if ("middle_name" in person){default_middle_name = person.middle_name;}
        if ("last_name" in person){default_last_name = person.last_name;}
        if ("birth_date" in person){default_birth_date = person.birth_date;}
        if ("death_date" in person){default_death_date = person.death_date;}
+       if ("extra_info" in person){default_extra_info = person.extra_info;}
        console.log("default birth date = ", default_birth_date);
        document.getElementById("edit_first_name").value = default_first_name;
        document.getElementById("edit_middle_name").value = default_middle_name;
        document.getElementById("edit_last_name").value = default_last_name;
        document.getElementById("edit_birth_date").value = default_birth_date;
        document.getElementById("edit_death_date").value = default_death_date;
+       document.getElementById("edit_extra_info").value = default_extra_info;
 
        $("#editpersondiv").css("top", person.y);
        $("#editpersondiv").css("left", person.x);
@@ -484,7 +487,7 @@ function add_person(person_info){
    people_history.push(people.slice(0));
    connectors_history.push(connectors.slice(0));
 
-   new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "middle_name":person_info.middle_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "x":mousex, "y":mousey - (mousey % Dy)};
+   new_person = {"id":"id" + String(new_id), "first_name":person_info.first_name, "middle_name":person_info.middle_name, "last_name":person_info.last_name, "birth_date":person_info.birth_date, "death_date":person_info.death_date, "extra_info":person_info.extra_info, "x":mousex, "y":mousey - (mousey % Dy)};
    new_id += 1;
    people.push(new_person);
    draw_tree();
@@ -506,6 +509,7 @@ function edit_person(id, person_info){
 	people[i].last_name = person_info.last_name;
 	people[i].birth_date = person_info.birth_date;
 	people[i].death_date = person_info.death_date;
+	people[i].extra_info = person_info.extra_info;
       }       
    }
 
@@ -556,10 +560,16 @@ function draw_tree(){
    //First clear everything
    d3.select("svg").remove()
 
+   var max_width = 0; var max_height = 0;
+   for (i = 0; i < people.length; i++){
+       if (people[i].x > max_width){max_width = people[i].x;}
+       if (people[i].y > max_height){max_height = people[i].y;}
+   }
+
    svgSelection = bodySelection.append("svg")
                                 .attr("id","mainsvg")
-                                .attr("width", 2000)
-                                .attr("height", 1000);
+                                .attr("width", 1.5*max_width)
+                                .attr("height", 1.5*max_height);
 
    ydelta = 80;
    //Draw people boxes
@@ -667,7 +677,10 @@ function draw_person(xx, yy, person){
 		    display_birth = get_display_birth(person);
 		    document.getElementById("display_birth").innerHTML = display_birth;		     
 		    display_death = get_display_death(person);
-		    document.getElementById("display_death").innerHTML = display_death;		     
+		    document.getElementById("display_death").innerHTML = display_death;	
+		    display_extra_info = " ";
+		    if ("extra_info" in person){display_extra_info = person.extra_info;}
+		    document.getElementById("display_extra_info").innerHTML = display_extra_info;	
 
 		    $("#displaypersondiv").css("top", person.y);
 		    $("#displaypersondiv").css("left", person.x);
@@ -816,7 +829,8 @@ $("#add_send").click(function() {
     var last_name = $("#add_last_name").val();
     var birth_date = $("#add_birth_date").val();
     var death_date = $("#add_death_date").val();
-    var person_info = {"first_name":first_name, "last_name":last_name, "middle_name":middle_name, "birth_date":birth_date, "death_date":death_date};
+    var extra_info = $("#add_extra_info").val();
+    var person_info = {"first_name":first_name, "last_name":last_name, "middle_name":middle_name, "birth_date":birth_date, "death_date":death_date, "extra_info":extra_info};
     // Add info to people list
     add_person(person_info);
     $(this).parent().parent().hide();
@@ -836,7 +850,8 @@ $("#edit_send").click(function() {
     var last_name = $("#edit_last_name").val();
     var birth_date = $("#edit_birth_date").val();
     var death_date = $("#edit_death_date").val();
-    var person_info = {"first_name":first_name, "middle_name":middle_name, "last_name":last_name, "birth_date":birth_date, "death_date":death_date};
+    var extra_info = $("#edit_extra_info").val();
+    var person_info = {"first_name":first_name, "middle_name":middle_name, "last_name":last_name, "birth_date":birth_date, "death_date":death_date, "extra_info":extra_info};
     edit_person(editting_id, person_info);
     editting_person = false;
     editting_id = "";
